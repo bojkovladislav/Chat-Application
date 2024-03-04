@@ -1,0 +1,1 @@
+export { default as NewGroupPreview } from './NewGroupPreview';
