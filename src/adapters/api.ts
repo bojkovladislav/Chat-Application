@@ -3,7 +3,7 @@ import { PrivateRooms, RoomsType } from "../../types/Rooms";
 import { ID } from "../../types/PublicTypes";
 import { getItemFromLS } from "../utils/localStorage";
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = "https://chat-application-server-dcth.onrender.com";
 
 const currentUser = getItemFromLS("user");
 
