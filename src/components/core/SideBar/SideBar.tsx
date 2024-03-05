@@ -93,7 +93,9 @@ const SideBar: FC<Props> = ({
       setRoom(null);
     }
 
-    setRooms(rooms.filter((room: RoomType) => room.id !== id));
+    setRooms((prevRooms) => {
+      return prevRooms.filter((room: RoomType) => room.id !== id);
+    });
   };
 
   const handleRoomDelete = (
@@ -150,10 +152,8 @@ const SideBar: FC<Props> = ({
   const submitNewGroupCreationForm = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!addedGroupInfo?.name) return;
-
     const errorAfterValidation = validateNewGroupName(
-      addedGroupInfo?.name,
+      addedGroupInfo.name,
       rooms,
     );
 
@@ -174,7 +174,7 @@ const SideBar: FC<Props> = ({
     const { name, members } = addedGroupInfo;
     const memberIds = [user.id, ...(members?.map((member) => member.id) || [])];
 
-    socket.emit("create_group", name, [user.id], memberIds, true, user.id);
+    socket.emit("create_group", name, [user.id], memberIds, true);
     socket.on("group_creation_failed", console.log);
 
     handleCloseAddedGroupInfo();
@@ -317,7 +317,7 @@ const SideBar: FC<Props> = ({
     if (addedRoomId) {
       const brandNewRoom = rooms.find((room) => room.id === addedRoomId);
 
-      if (brandNewRoom) {
+      if (brandNewRoom && (brandNewRoom as PrivateRoom).commonId) {
         handleRoomEnterLocally(brandNewRoom as PrivateRoom);
       }
     }
@@ -326,9 +326,16 @@ const SideBar: FC<Props> = ({
 
   useEffect(() => {
     socket.on("send_group", handleAddRoomLocally);
-    socket.on("group_created", (group) => {
-      handleEndRoomCreation(group);
-      joinRoom(group.id);
+    socket.on("group_created", (group: Group) => {
+      if (group.creators[0] === user.id) {
+        handleEndRoomCreation(group);
+        joinRoom(group.id);
+
+        return;
+      }
+
+      setIsMessagesLoading(false);
+      setAddedRoomId(null);
     });
 
     socket.on("send_private-room_to_opponent", (newPrivateRoom) => {
@@ -339,6 +346,8 @@ const SideBar: FC<Props> = ({
     });
 
     socket.on("private-room_created", handleEndRoomCreation);
+
+    socket.on("group_deleted", handleRoomDeleteLocally);
 
     return () => {
       socket.off("send_private-room_to_opponent");

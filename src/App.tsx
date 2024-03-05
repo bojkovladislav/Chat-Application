@@ -94,6 +94,7 @@ function App() {
     removeItemFromLS("user");
     setMessages(null);
     setRoom(null);
+    setRooms([]);
   };
 
   const fetchAllRooms = (roomIds: ID[]) => {

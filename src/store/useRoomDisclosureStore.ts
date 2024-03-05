@@ -1,4 +1,4 @@
-import create, { StoreApi, UseBoundStore } from "zustand";
+import { StoreApi, UseBoundStore, create } from "zustand";
 
 interface useDisclosure {
   isOpened: boolean;
@@ -15,9 +15,16 @@ enum MODAL_ACTION {
   CLOSE = "close",
 }
 
-type SetFunction<T> = (partial: Partial<T> | ((state: T) => T | Partial<T>), replace?: boolean) => void;
+type SetFunction<T> = (
+  partial: Partial<T> | ((state: T) => T | Partial<T>),
+  replace?: boolean,
+) => void;
 
-const operateModal = (set: SetFunction<ItemsObj>, item: Item, action: MODAL_ACTION) => {
+const operateModal = (
+  set: SetFunction<ItemsObj>,
+  item: Item,
+  action: MODAL_ACTION,
+) => {
   return set((state: ItemsObj) => ({
     [item]: { ...state[item], isOpened: action === "close" ? false : true },
   }));

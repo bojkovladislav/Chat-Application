@@ -40,7 +40,6 @@ const Rooms: FC<Props> = ({
     <div className="flex flex-col">
       {rooms.map((currentRoom: RoomType) => {
         const { id, name, creators, avatar } = currentRoom;
-
         return (currentRoom as GroupType).members !== undefined ? (
           <RoomWrapper
             key={id}
