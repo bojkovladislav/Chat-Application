@@ -112,4 +112,4 @@ Explore various features available within the chat interface.
 
 ## [Get to the Top Button](#chat-application)
 
-[Back to Top](#chat-application)
+[Back to Top](#Chat-Application)
