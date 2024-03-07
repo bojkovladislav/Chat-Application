@@ -1,5 +1,7 @@
 # Chat Application
 
+[Link to the backend side](https://github.com/bojkovladislav/Chat-Application-Server)
+
 ## Navigation:
 - #### [Overview](#overview)
 - #### [Used Technologies](#used-technologies)
