@@ -10,7 +10,7 @@ const ModalButton: FC<Props> = ({ danger, title, onClick }) => {
   return (
     <button
       type="submit"
-      className={`rounded-md border-2 border-transparent px-2 py-1 font-bold transition-all duration-300 hover:text-white ${
+      className={`rounded-md border-2 border-transparent px-2 py-1 font-bold transition-all duration-300 ${
         danger ? "modal_button-danger" : "modal_button"
       }`}
       onClick={onClick}
