@@ -1,18 +1,12 @@
-# Chat Application {#chat-application}
+# Chat Application
 
-## [Overview](#overview)
-
-## [Used Technologies](#used-technologies)
-
-## [Log in](#log-in)
-
-## [Private Rooms](#private-rooms)
-
-## [Group Chats](#group-chats)
-
-## [Chat Functionality](#chat-functionality)
-
-## [Get to the Top Button](#chat-application)
+## Navigation:
+- #### [Overview](#overview)
+- #### [Used Technologies](#used-technologies)
+- #### [Log in](#log-in)
+- #### [Private Rooms](#private-rooms)
+- #### [Group Chats](#group-chats)
+- #### [Chat Functionality](#chat-functionality)
 
 ### Welcome to the Chat Application Documentation!
 
