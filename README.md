@@ -1,6 +1,18 @@
-## Chat Application {#chat-application}
+# Chat Application {#chat-application}
 
-## Overview
+## [Overview](#overview)
+
+## [Used Technologies](#used-technologies)
+
+## [Log in](#log-in)
+
+## [Private Rooms](#private-rooms)
+
+## [Group Chats](#group-chats)
+
+## [Chat Functionality](#chat-functionality)
+
+## [Get to the Top Button](#chat-application)
 
 ### Welcome to the Chat Application Documentation!
 
@@ -10,7 +22,7 @@
 - **Chat Functionality**: Engage in dynamic conversations with features like messaging, replying, copying, editing, and emoji support.
 - **Responsiveness**: The application is fully responsive, ensuring a smooth user experience across various devices.
 
-## Used Technologies
+## [Used Technologies](#used-technologies)
 
 - React
 - Tailwind
@@ -23,7 +35,7 @@
 - UUID
 - lodash
 
-## Log in
+## [Log in](#log-in)
 
 ### Introduction
 
@@ -31,7 +43,7 @@ New users can create an account by clicking the "Log in" button. Existing users 
 
 ![Login page](./public/login.gif)
 
-## Private Rooms
+## [Private Rooms](#private-rooms)
 
 ### Introduction
 
@@ -55,7 +67,7 @@ Private Rooms allow users to engage in one-on-one conversations in a secure envi
 - If the other participant sends a message, the chat will be restored.
 - If both users delete the chat, all message history will be permanently removed.
 
-## Group Chats
+## [Group Chats](#group-chats)
 
 ### Introduction
 
@@ -75,7 +87,7 @@ Group Chats facilitate communication among multiple users in a collaborative set
   - Delete for everyone: Creators can delete a group for everyone.
     ![Delete Group For Everyone](./public/group_delete-everyone.gif)
 
-## Chat Functionality
+## [Chat Functionality](#chat-functionality)
 
 ### Introduction
 
@@ -98,6 +110,6 @@ Explore various features available within the chat interface.
 - **Scroll To Latest Messages**: Quickly scroll to the latest message with the new message notification button.
   ![Scroll To The Bottom Button](./public/chat_get-to-latest-messages_button.gif)
 
-## Get to the Top Button
+## [Get to the Top Button](#chat-application)
 
 [Back to Top](#chat-application)
