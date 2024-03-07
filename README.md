@@ -64,11 +64,11 @@ Group Chats facilitate communication among multiple users in a collaborative set
 ### Features
 
 1. **Creation**: Access the main menu and select "new chat +" to create a group chat. Customize group chat settings according to your preferences.
-   ![Creation](./public/creation.mp4)
+   ![Creation](./public/creation.gif)
 2. **Group Settings**:
 
 - View Group Info: See the main information of the group.
-  ![View Info](./public/group_view-info.mp4)
+  ![View Info](./public/group_view-info.gif)
 - Delete Group:
   - Delete for self: Non-creators can delete a group for themselves only.
     ![Delete Group For Self](./public/group_delete-self.gif)
