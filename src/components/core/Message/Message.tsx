@@ -5,7 +5,7 @@ import {
   OperatedMessage,
 } from "../../../../types/Messages";
 import { Skeleton } from "@mantine/core";
-import { Group, RoomType } from "../../../../types/Rooms";
+import { Group, PrivateRoom, RoomType } from "../../../../types/Rooms";
 import {
   Clock,
   PencilFill,
@@ -114,7 +114,11 @@ const Message: FC<Props> = ({
       };
     });
 
-    socket.emit("delete_message", room.id, id);
+    socket.emit(
+      "delete_message",
+      (room as PrivateRoom).commonId ? (room as PrivateRoom).commonId : room.id,
+      id,
+    );
   };
 
   const handleShowMenu = showContextMenu(contentForMenu(), {

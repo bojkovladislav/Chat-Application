@@ -96,6 +96,7 @@ const SideBar: FC<Props> = ({
     setRooms((prevRooms) => {
       return prevRooms.filter((room: RoomType) => room.id !== id);
     });
+    setRoom(null);
   };
 
   const handleRoomDelete = (

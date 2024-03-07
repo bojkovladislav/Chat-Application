@@ -1,5 +1,5 @@
 import { SetState } from "../../../../types/PublicTypes";
-import { RoomType, RoomsType } from "../../../../types/Rooms";
+import { Group, RoomType, RoomsType } from "../../../../types/Rooms";
 import { FC, useEffect, useState } from "react";
 import { User } from "../../../../types/Users";
 import { socket } from "../../../adapters/socket";
@@ -78,7 +78,7 @@ const DeleteRoomForm: FC<Props> = ({
     <div className="flex flex-col gap-5 px-2">
       <h1>Are you sure you want to delete this room?</h1>
 
-      {room?.creators?.includes(user.id) && (
+      {room?.creators?.includes(user.id) && (room as Group).members && (
         <label htmlFor="deleteForEveryone" className="flex w-fit gap-2">
           Delete for everyone
           <input

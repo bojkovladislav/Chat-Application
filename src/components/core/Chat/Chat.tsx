@@ -260,15 +260,19 @@ const Chat: FC<Props> = ({
         <h1>Please, select a room to start messaging</h1>
       )}
 
-      <NewMessageNotification
-        isNewMessagesVisible={isNewMessagesVisible}
-        scrollChatToBottom={scrollChatToBottom}
-      />
+      {room && (
+        <>
+          <NewMessageNotification
+            isNewMessagesVisible={isNewMessagesVisible}
+            scrollChatToBottom={scrollChatToBottom}
+          />
 
-      <ScrollToBottomArrow
-        isUserScrollingUp={isUserScrollingUp}
-        scrollChatToBottom={scrollChatToBottom}
-      />
+          <ScrollToBottomArrow
+            isUserScrollingUp={isUserScrollingUp}
+            scrollChatToBottom={scrollChatToBottom}
+          />
+        </>
+      )}
 
       <Modal
         title="Delete Chat"

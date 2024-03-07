@@ -13,19 +13,22 @@ const RepliedMessageBar: FC<Props> = ({
   isOpponentMessage,
 }) => {
   const colors = {
-    primaryColor: isOpponentMessage ? "slate-600" : "blue-600",
-    secondaryColor: isOpponentMessage ? "slate-400" : "blue-300",
-    messageColor: isOpponentMessage ? "slate-300" : "gray-200",
-  } as const;
+    primaryColor: isOpponentMessage ? "#26344a" : "#157ae8",
+    secondaryColor: isOpponentMessage ? "#5a6373" : "#adcdf0",
+    messageColor: isOpponentMessage ? "#838b91" : "#d9dadb",
+  };
 
   return (
     <div
-      className={`flex flex-col gap-1 rounded-sm border-l-4 px-2 border-${colors.secondaryColor} bg-${colors.primaryColor}`}
+      className={`flex flex-col gap-1 rounded-sm border-l-4 px-2`}
+      style={{
+        borderColor: colors.secondaryColor,
+        color: colors.secondaryColor,
+        backgroundColor: colors.primaryColor,
+      }}
     >
-      <p className={`text-sm font-bold text-${colors.secondaryColor}`}>
-        {author}
-      </p>
-      <p className={`text-xxs text-${colors.messageColor}`}>
+      <p className="text-sm font-bold">{author}</p>
+      <p className="text-xxs" style={{ color: colors.messageColor }}>
         {normalizeTextLength(message, 50)}
       </p>
     </div>
