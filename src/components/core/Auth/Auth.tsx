@@ -28,28 +28,36 @@ const Auth: FC<Props> = ({ createUser }) => {
   };
 
   return (
-    <form
-      className="flex flex-col gap-5 rounded-md border-2 p-5 md:flex-row md:gap-10 md:p-10"
-      onSubmit={handleSubmit}
-    >
-      <div className="relative">
-        <input
-          className="input"
-          placeholder="Enter your username"
-          value={name}
-          onChange={(e) => handleInputChange(e.target.value)}
-        />
-        {error && (
-          <p className="absolute top-11 text-sm font-semibold text-red-600">
-            {error}
-          </p>
-        )}
-      </div>
+    <div className="flex max-w-[500px] flex-col gap-5 rounded-md border-2 p-5 md:p-8">
+      <form
+        className="flex flex-col gap-5  md:flex-row md:gap-10 "
+        onSubmit={handleSubmit}
+      >
+        <div className="relative">
+          <input
+            className="input"
+            placeholder="Enter your username"
+            value={name}
+            onChange={(e) => handleInputChange(e.target.value)}
+          />
+          {error && (
+            <p className="absolute top-11 text-sm font-semibold text-red-600">
+              {error}
+            </p>
+          )}
+        </div>
 
-      <button className="button bg-blue-500" type="submit">
-        {`${isLoading ? "Working on it..." : "Log in"}`}
-      </button>
-    </form>
+        <button className="button bg-blue-500" type="submit">
+          {`${isLoading ? "Working on it..." : "Log in"}`}
+        </button>
+      </form>
+
+      <p className="text-sm">
+        <span className="text-yellow-300">Note:</span> Initial loading time may
+        be slightly longer than usual due to the limitations of my server, which
+        is hosted for free.
+      </p>
+    </div>
   );
 };
 
