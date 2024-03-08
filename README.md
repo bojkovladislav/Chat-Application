@@ -2,15 +2,18 @@
 
 [Link to the backend side](https://github.com/bojkovladislav/Chat-Application-Server)
 
+<span style="color: yellow;">Note: Initial loading time may be slightly longer than usual due to the limitations of my server, which is hosted for free.
+</span>
+
 ## [DEMO LINK](https://chat-application-sable-nine.vercel.app)
 
 ## Navigation:
-- #### [Overview](#overview)
-- #### [Used Technologies](#used-technologies)
-- #### [Log in](#log-in)
-- #### [Private Rooms](#private-rooms)
-- #### [Group Chats](#group-chats)
-- #### [Chat Functionality](#chat-functionality)
+- [Overview](#overview)
+- [Used Technologies](#used-technologies)
+- [Log in](#log-in)
+- [Private Rooms](#private-rooms)
+- [Group Chats](#group-chats)
+- [Chat Functionality](#chat-functionality)
 
 ### Welcome to the Chat Application Documentation!
 
