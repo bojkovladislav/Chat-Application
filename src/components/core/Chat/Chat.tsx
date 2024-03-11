@@ -302,7 +302,6 @@ const Chat: FC<Props> = ({
           currentRoom={room as Group}
           openRoomUserModal={openRoomUserModal}
           closeRoomInfoModal={closeRoomInfoModal}
-          isUserModalOpened={isUserModalOpened}
           setSelectedMember={setSelectedMember}
         />
       </Modal>

@@ -17,8 +17,7 @@ interface Props {
   currentRoom: RoomType;
   openRoomUserModal: () => void;
   closeRoomInfoModal: () => void;
-  isUserModalOpened: boolean;
-  setSelectedMember: SetState<PrivateRoom | null>;
+  setSelectedMember?: SetState<PrivateRoom | null>;
 }
 
 const ViewRoomInfo: FC<Props> = ({
@@ -64,7 +63,7 @@ const ViewRoomInfo: FC<Props> = ({
 
     openRoomUserModal();
     closeRoomInfoModal();
-    setSelectedMember(member);
+    setSelectedMember && setSelectedMember(member);
   };
 
   useEffect(() => {

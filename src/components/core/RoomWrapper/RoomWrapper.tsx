@@ -1,4 +1,4 @@
-import { FC, MouseEvent, ReactNode } from "react";
+import { FC, MouseEvent, ReactNode, useEffect, useState } from "react";
 import { Group, PrivateRoom, RoomType } from "../../../../types/Rooms";
 import { Trash } from "react-bootstrap-icons";
 import { Skeleton } from "@mantine/core";
@@ -9,6 +9,7 @@ interface Props {
   active: boolean;
   isRoomsLoading: boolean;
   deleteRoomCondition: boolean;
+  isNewLocalRoomCreating?: boolean;
   currentRoom: RoomType;
   handleRoomEnter:
     | ((currentRoom: PrivateRoom) => Promise<void>)
@@ -30,14 +31,30 @@ const RoomWrapper: FC<Props> = ({
   handleRoomEnter,
   currentRoom,
 }) => {
+  const [isNewLocalRoomCreating, setNewLocalRoomCreating] = useState(false);
+
+  useEffect(() => {
+    let timeout = setTimeout(() => {
+      setNewLocalRoomCreating(false);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [isNewLocalRoomCreating]);
+
+  const handleClick = () => {
+    !isNewLocalRoomCreating &&
+      deleteRoomCondition &&
+      handleRoomEnter(currentRoom as PrivateRoom);
+
+    setNewLocalRoomCreating(true);
+  };
+
   return (
     <div
       className={`flex items-center justify-between border-b border-slate-600 p-3 ${
         active && "bg-slate-700"
       } ${isRoomsLoading && "pointer-events-none"}`}
-      onClick={() =>
-        deleteRoomCondition && handleRoomEnter(currentRoom as PrivateRoom)
-      }
+      onClick={handleClick}
     >
       {children}
 

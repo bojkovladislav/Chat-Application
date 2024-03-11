@@ -7,7 +7,7 @@ import {
 } from "../../../../types/Rooms";
 import { Group } from "../Group";
 import { RoomWrapper } from "../RoomWrapper";
-import { ID } from "../../../../types/PublicTypes";
+import { ID, SetState } from "../../../../types/PublicTypes";
 import { User } from "../../../../types/Users";
 import { PrivateRoom } from "../PrivateRoom";
 
@@ -25,6 +25,7 @@ interface Props {
   user: User;
   addedRoomId: ID | null;
   areRoomsLoading: boolean;
+  setIsUserInfoModalOpen?: SetState<boolean>;
 }
 
 const Rooms: FC<Props> = ({

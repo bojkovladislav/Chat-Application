@@ -30,6 +30,7 @@ import { Modal } from "../../shared/Modal";
 import { NewGroupPreview } from "../../forms/NewGroupPreview";
 import { validateNewGroupName } from "../../../utils/validateNewGroupName";
 import { AddMembersOnGroupCreation } from "../../forms/AddMembersOnGroupCreation";
+import { UserInfo } from "../UserInfo";
 
 interface Props {
   rooms: RoomsType;
@@ -76,16 +77,26 @@ const SideBar: FC<Props> = ({
       close: closeAddMembersToNewGroupModal,
     },
   ] = useDisclosure(false);
+  const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<PrivateRoom | null>(null);
 
   const handleAddRoomLocally = (room: RoomType) => {
     setAddedRoomId(room.id);
-    setRooms((prevRooms) => [room, ...prevRooms]);
+    setRooms((prevRooms) =>
+      !prevRooms.some((r) => r.id === room.id)
+        ? [room, ...prevRooms]
+        : prevRooms,
+    );
   };
 
   const handleAddPrivateRoomLocally = (room: RoomType) => {
     handleAddRoomLocally(room);
 
-    setFilteredChats((prevChats) => prevChats && [...prevChats, room]);
+    setFilteredChats((prevChats) =>
+      prevChats && prevChats.every((chat) => chat.id !== room.id)
+        ? [...prevChats, room]
+        : prevChats,
+    );
   };
 
   const handleRoomDeleteLocally = (id: ID) => {
@@ -244,6 +255,13 @@ const SideBar: FC<Props> = ({
   };
 
   const handlePrivateRoomEnter = async (currentRoom: PrivateRoom) => {
+    setSelectedUser(currentRoom);
+    setIsUserInfoModalOpen(true);
+  };
+
+  const handleSendDirectMessage = async (currentRoom: PrivateRoom) => {
+    setIsUserInfoModalOpen(false);
+
     const foundChat = filteredChats?.find(
       (chat) => chat.name === currentRoom.name,
     );
@@ -470,6 +488,18 @@ const SideBar: FC<Props> = ({
           setAddedGroupInfo={setAddedGroupInfo}
           addedGroupInfo={addedGroupInfo}
           handleCreateGroup={handleCreateGroup}
+        />
+      </Modal>
+
+      <Modal
+        title="User Modal"
+        opened={isUserInfoModalOpen}
+        close={() => setIsUserInfoModalOpen(false)}
+      >
+        <UserInfo
+          user={user}
+          currentUser={selectedUser}
+          handleSendDirectMessage={handleSendDirectMessage}
         />
       </Modal>
     </div>

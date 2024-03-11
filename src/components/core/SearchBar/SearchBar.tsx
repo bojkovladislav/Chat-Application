@@ -1,5 +1,5 @@
 import { FC, useEffect } from "react";
-import { Search as SearchIcon } from "react-bootstrap-icons";
+import { Search as SearchIcon, X } from "react-bootstrap-icons";
 import { SetState } from "../../../../types/PublicTypes";
 import _debounce from "lodash/debounce";
 import { PrivateRooms, RoomsType } from "../../../../types/Rooms";
@@ -65,7 +65,7 @@ const SearchBar: FC<Props> = ({
   }, [query]);
 
   return (
-    <div className="flex items-center gap-3 rounded-md border-transparent bg-slate-600 pl-2">
+    <div className="flex items-center gap-3 rounded-md border-transparent bg-slate-600 px-2">
       <SearchIcon />
       <input
         type="text"
@@ -74,6 +74,9 @@ const SearchBar: FC<Props> = ({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+      {!!query.length && (
+        <X className="h-7 w-7 cursor-pointer" onClick={() => setQuery("")} />
+      )}
     </div>
   );
 };
