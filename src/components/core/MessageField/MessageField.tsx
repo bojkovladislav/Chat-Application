@@ -9,7 +9,7 @@ import { socket } from "../../../adapters/socket";
 import { ID, SetState } from "../../../../types/PublicTypes";
 import { v4 as uuid } from "uuid";
 import { generateRandomParagraph } from "../../../utils/generateRandomParagraph";
-import { RoomType } from "../../../../types/Rooms";
+import { PrivateRoom, RoomType } from "../../../../types/Rooms";
 import { Message } from "../Message";
 import "@mantine/core/styles.css";
 import _debounce from "lodash/debounce";
@@ -24,6 +24,8 @@ interface Props {
   setNewMessageFromOpponentId: SetState<null | ID>;
   setCurrentTypingUserName: SetState<string | null>;
   setOperatedMessage: SetState<OperatedMessage>;
+  setSelectedMember: SetState<PrivateRoom | null>;
+  openRoomUserModal: () => void;
 }
 
 const MessageField: FC<Props> = ({
@@ -35,6 +37,8 @@ const MessageField: FC<Props> = ({
   sentMessageId,
   setCurrentTypingUserName,
   setOperatedMessage,
+  setSelectedMember,
+  openRoomUserModal,
   room,
 }) => {
   const handleReceiveMessage = (newMessage: MessageType) => {
@@ -140,7 +144,9 @@ const MessageField: FC<Props> = ({
             room={room}
             setMessages={setMessages}
             setOperatedMessage={setOperatedMessage}
+            openRoomUserModal={openRoomUserModal}
             message={message}
+            setSelectedMember={setSelectedMember}
             messages={arr}
             index={index}
             isMessagesLoading={isMessagesLoading}

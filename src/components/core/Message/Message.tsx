@@ -13,7 +13,7 @@ import {
   Clipboard,
   Trash,
 } from "react-bootstrap-icons";
-import { ID, SetState } from "../../../../types/PublicTypes";
+import { ID, SetState, USER_STATUS } from "../../../../types/PublicTypes";
 import { Avatar } from "../../shared/Avatar";
 import { useMediaQuery } from "@mantine/hooks";
 import { useContextMenu } from "mantine-contextmenu";
@@ -27,6 +27,8 @@ interface Props {
   setOperatedMessage: SetState<OperatedMessage>;
   setMessages: SetState<Messages | null>;
   index: number;
+  openRoomUserModal: () => void;
+  setSelectedMember: SetState<PrivateRoom | null>;
   userId: ID;
   room: RoomType;
   isMessagesLoading: boolean;
@@ -39,6 +41,8 @@ const Message: FC<Props> = ({
   userId,
   message,
   room,
+  openRoomUserModal,
+  setSelectedMember,
   isMessagesLoading,
   setMessages,
   sentMessageId,
@@ -125,6 +129,20 @@ const Message: FC<Props> = ({
     style: { backgroundColor: "#0f174a" },
   });
 
+  const handleClickOnAvatar = () => {
+    setSelectedMember({
+      avatar,
+      name: authorName,
+      id: authorId,
+      commonId: "123-123-123-123-123",
+      creators: [authorId],
+      description: "",
+      opponentRoomId: "123-123-123-123-123",
+      status: USER_STATUS.ONLINE,
+    });
+    openRoomUserModal();
+  };
+
   return (
     <div
       className={`flex w-fit max-w-full flex-col gap-1 md:max-w-md ${gapClass}
@@ -134,7 +152,12 @@ const Message: FC<Props> = ({
     >
       <div className="flex gap-2">
         {userId !== authorId && (room as Group).members && (
-          <Skeleton visible={isMessagesLoading} circle className="h-fit w-fit">
+          <Skeleton
+            visible={isMessagesLoading}
+            circle
+            className="h-fit w-fit"
+            onClick={handleClickOnAvatar}
+          >
             <Avatar name={authorName} avatar={avatar} />
           </Skeleton>
         )}

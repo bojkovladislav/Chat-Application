@@ -9,18 +9,17 @@ import { ID, SetState } from "../../../../types/PublicTypes";
 import {
   Group,
   PrivateRoom,
+  PrivateRooms,
   RoomType,
   RoomsType,
 } from "../../../../types/Rooms";
 import { NewMessageNotification } from "../NewMessageNotification";
 import { ScrollToBottomArrow } from "../../shared/ScrollToBottomArrow";
 import { socket } from "../../../adapters/socket";
-import { Modal } from "../../shared/Modal";
 import useDisclosureStore from "../../../store/useRoomDisclosureStore";
-import { DeleteGroupForm } from "../DeleteRoomModal";
-import { ViewRoomInfo } from "../ViewRoomInfoModal";
-import { UserInfo } from "../UserInfo";
 import { ChatHeader } from "../ChatHeader";
+import { ChatSettingsModals } from "../ChatSettingsModals";
+import useGroupOperations from "../../../hooks/useGroupOperations";
 
 interface Props {
   messages: Messages | null;
@@ -66,11 +65,6 @@ const Chat: FC<Props> = ({
   const isUserNearBottom = useRef<boolean>(false);
   const isOverflowTriggered = useRef<boolean>(false);
   const {
-    isOpened: isDeleteRoomModalOpened,
-    closeDiscloSure: closeDeleteRoomModal,
-  } = useDisclosureStore().deleteRoomItem;
-  const {
-    isOpened: isRoomInfoModalOpen,
     openDiscloSure: openRoomInfoModal,
     closeDiscloSure: closeRoomInfoModal,
   } = useDisclosureStore().roomInfoItem;
@@ -81,6 +75,22 @@ const Chat: FC<Props> = ({
   const [selectedMember, setSelectedMember] = useState<PrivateRoom | null>(
     null,
   );
+  const [
+    isMembersModalOpened,
+    { open: openMembersModal, close: closeMembersModal },
+  ] = useDisclosure(false);
+  const [
+    isAddMembersToNewGroupModalOpened,
+    { open: openAddMembersToGroupModal, close: closeAddMembersToGroupModal },
+  ] = useDisclosure(false);
+  const [
+    isAdministratorsModalOpened,
+    { open: openAdministratorsModal, close: closeAdministratorsModal },
+  ] = useDisclosure(false);
+  const [addedGroupMembers, setAddedGroupMembers] = useState<PrivateRooms>([]);
+  const [membersForMembersModal, setMembersForMembersModal] =
+    useState<PrivateRooms>([]);
+  const { addMember, removeMember } = useGroupOperations(setRooms, setRoom);
 
   const scrollChatToBottom = (smooth: boolean = false) => {
     if (chatWindowRef.current && !isMessagesLoading) {
@@ -117,18 +127,21 @@ const Chat: FC<Props> = ({
     }
   };
 
-  const handleCloseViewRoomInfoModal = () => {
-    closeRoomUserModal();
-    openRoomInfoModal();
-  };
-
   const handleSendDirectMessage = async (member: PrivateRoom) => {
     closeRoomUserModal();
+    closeRoomInfoModal();
+    closeAddMembersToGroupModal();
+    closeAdministratorsModal();
+    closeMembersModal();
 
     const foundRoom = rooms.find((room) => room.name === member.name);
 
     if (foundRoom) {
       setRoom(foundRoom);
+
+      await new Promise((resolve) =>
+        setTimeout(() => resolve(scrollChatToBottom()), 300),
+      );
 
       return;
     }
@@ -180,25 +193,24 @@ const Chat: FC<Props> = ({
     // eslint-disable-next-line
   }, [newMessageFromOpponentId, isUserNearBottom]);
 
+  console.log(room && (room as Group).members);
+
   useEffect(() => {
-    socket.on("send_updated_group_members", (userId: ID) => {
-      setRoom((prevRoom) => {
-        if (!prevRoom) return prevRoom;
+    socket.on("send_updated_group_members", (groupId: ID, memberId: ID) => {
+      addMember(groupId, memberId);
+    });
 
-        if ("members" in prevRoom) {
-          const updatedRoom: Group = {
-            ...prevRoom,
-            members: [...prevRoom.members, userId],
-          };
+    socket.on("member_removed", (groupId: ID, memberId: ID) => {
+      removeMember(groupId, memberId);
 
-          return updatedRoom;
-        }
-
-        return prevRoom;
-      });
+      setMembersForMembersModal(
+        (prevMembers) =>
+          prevMembers && prevMembers.filter((member) => member.id !== memberId),
+      );
     });
 
     return () => {
+      socket.off("member_removed");
       socket.off("send_updated_group_members");
       socket.off("check_for_existing_opponent_room");
       socket.off("opponent_room_not_exist");
@@ -235,11 +247,13 @@ const Chat: FC<Props> = ({
           >
             <MessageField
               sentMessageId={sentMessageId}
+              openRoomUserModal={openRoomUserModal}
               user={user}
               setNewMessageFromOpponentId={setNewMessageFromOpponentId}
               isMessagesLoading={isMessagesLoading}
               messages={messages}
               setMessages={setMessages}
+              setSelectedMember={setSelectedMember}
               room={room}
               setCurrentTypingUserName={setCurrentTypingUserName}
               setOperatedMessage={setOperatedMessage}
@@ -274,51 +288,34 @@ const Chat: FC<Props> = ({
         </>
       )}
 
-      <Modal
-        title="Delete Chat"
-        close={closeDeleteRoomModal}
-        opened={isDeleteRoomModalOpened}
-      >
-        <DeleteGroupForm
-          title={room?.name || ""}
-          room={room}
-          setRooms={setRooms}
-          roomType={room && (room as Group).members ? "group" : "private-room"}
-          user={user}
-          filteredChats={filteredChats}
-          setFilteredChats={setFilteredChats}
-          currentRoom={room}
-          closeModal={closeDeleteRoomModal}
-          setRoom={setRoom}
-        />
-      </Modal>
-
-      <Modal
-        title="Room Info"
-        opened={isRoomInfoModalOpen}
-        close={closeRoomInfoModal}
-      >
-        <ViewRoomInfo
-          currentRoom={room as Group}
-          openRoomUserModal={openRoomUserModal}
-          closeRoomInfoModal={closeRoomInfoModal}
-          setSelectedMember={setSelectedMember}
-        />
-      </Modal>
-
-      <Modal
-        title="User Modal"
-        opened={isUserModalOpened}
-        close={closeRoomUserModal}
-        subModal
-        subModalClose={handleCloseViewRoomInfoModal}
-      >
-        <UserInfo
-          user={user}
-          currentUser={selectedMember}
-          handleSendDirectMessage={handleSendDirectMessage}
-        />
-      </Modal>
+      <ChatSettingsModals
+        addedGroupMembers={addedGroupMembers}
+        filteredChats={filteredChats}
+        handleSendDirectMessage={handleSendDirectMessage}
+        membersForMembersModal={membersForMembersModal}
+        room={room}
+        rooms={rooms}
+        user={user}
+        selectedMember={selectedMember}
+        setAddedGroupMembers={setAddedGroupMembers}
+        setFilteredChats={setFilteredChats}
+        setMembersForMembersModal={setMembersForMembersModal}
+        setRoom={setRoom}
+        setRooms={setRooms}
+        setSelectedMember={setSelectedMember}
+        isUserModalOpened={isUserModalOpened}
+        openRoomUserModal={openRoomUserModal}
+        closeRoomUserModal={closeRoomUserModal}
+        isMembersModalOpened={isMembersModalOpened}
+        openMembersModal={openMembersModal}
+        closeMembersModal={closeMembersModal}
+        isAdministratorsModalOpened={isAdministratorsModalOpened}
+        openAdministratorsModal={openAdministratorsModal}
+        closeAdministratorsModal={closeAdministratorsModal}
+        isAddMembersToNewGroupModalOpened={isAddMembersToNewGroupModalOpened}
+        openAddMembersToGroupModal={openAddMembersToGroupModal}
+        closeAddMembersToGroupModal={closeAddMembersToGroupModal}
+      />
     </div>
   );
 };

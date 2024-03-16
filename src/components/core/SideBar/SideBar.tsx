@@ -26,23 +26,22 @@ import { SearchBar } from "../SearchBar";
 import { Rooms } from "../Rooms";
 import { useDisclosure } from "@mantine/hooks";
 import "@mantine/core/styles.css";
-import { Modal } from "../../shared/Modal";
-import { NewGroupPreview } from "../../forms/NewGroupPreview";
 import { validateNewGroupName } from "../../../utils/validateNewGroupName";
-import { AddMembersOnGroupCreation } from "../../forms/AddMembersOnGroupCreation";
-import { UserInfo } from "../UserInfo";
+import { AddNewGroupModals } from "../AddNewGroupModals";
 
 interface Props {
   rooms: RoomsType;
   setRooms: SetState<RoomsType>;
   room: RoomType | null;
   setRoom: SetState<RoomType | null>;
-  setIsMessagesLoading: SetState<boolean>;
+  setAreMessagesLoading: SetState<boolean>;
   leftBarCurrentWidth?: number;
   areRoomsLoading: boolean;
   user: User;
   filteredChats: RoomsType | null;
   setFilteredChats: SetState<RoomsType | null>;
+  addedRoomId: ID | null;
+  setAddedRoomId: SetState<ID | null>;
 }
 // eslint-disable-next-line
 const SideBar: FC<Props> = ({
@@ -51,13 +50,14 @@ const SideBar: FC<Props> = ({
   room,
   setRoom,
   user,
-  setIsMessagesLoading,
+  setAreMessagesLoading: setAreMessagesLoading,
   areRoomsLoading: areRoomsLoading,
   filteredChats,
   setFilteredChats,
+  addedRoomId,
+  setAddedRoomId,
 }) => {
   const [inputError, setInputError] = useState("");
-  const [addedRoomId, setAddedRoomId] = useState<ID | null>(null);
   const [filteredUsers, setFilteredUsers] = useState<PrivateRooms>(null);
   const [addedGroupInfo, setAddedGroupInfo] = useState<AddedGroupInfo>({
     name: "",
@@ -242,14 +242,14 @@ const SideBar: FC<Props> = ({
       socket.on("failed_update_members", console.log);
     }
 
-    setIsMessagesLoading(true);
+    setAreMessagesLoading(true);
     setRoom(roomToUpdate);
     joinRoom(isGroup ? currentRoom.id : (currentRoom as PrivateRoom).commonId);
   };
 
   const handleEndRoomCreation = (room: RoomType) => {
     setRoom(room);
-    setIsMessagesLoading(false);
+    setAreMessagesLoading(false);
 
     setAddedRoomId(null);
   };
@@ -284,7 +284,7 @@ const SideBar: FC<Props> = ({
         socket.on("send_private-room", (newPrivateRoom) => {
           doesOpponentExist.current = true;
           handleAddPrivateRoomLocally(newPrivateRoom);
-          setIsMessagesLoading(true);
+          setAreMessagesLoading(true);
           resolve();
         });
       });
@@ -308,7 +308,6 @@ const SideBar: FC<Props> = ({
       rooms && !!rooms.length ? (
         <Rooms
           rooms={rooms}
-          handleRoomDelete={handleRoomDelete}
           handleRoomEnter={
             roomsType === "users" ? handlePrivateRoomEnter : handleRoomEnter
           }
@@ -344,34 +343,8 @@ const SideBar: FC<Props> = ({
   }, [rooms]);
 
   useEffect(() => {
-    socket.on("send_group", handleAddRoomLocally);
-    socket.on("group_created", (group: Group) => {
-      if (group.creators[0] === user.id) {
-        handleEndRoomCreation(group);
-        joinRoom(group.id);
-
-        return;
-      }
-
-      setIsMessagesLoading(false);
-      setAddedRoomId(null);
-    });
-
-    socket.on("send_private-room_to_opponent", (newPrivateRoom) => {
-      setRooms((prevRooms) => [newPrivateRoom, ...prevRooms]);
-      setFilteredChats(
-        (prevChats) => prevChats && [...prevChats, newPrivateRoom],
-      );
-    });
-
-    socket.on("private-room_created", handleEndRoomCreation);
-
-    socket.on("group_deleted", handleRoomDeleteLocally);
-
     return () => {
-      socket.off("send_private-room_to_opponent");
       socket.off("send_private-room");
-      socket.off("private-room_created");
       socket.off("rooms_got");
       socket.off("get_rooms");
       socket.off("join_room");
@@ -379,16 +352,12 @@ const SideBar: FC<Props> = ({
       socket.off("check_for_existing_opponent_room");
       socket.off("opponent_room_not_exist");
       socket.off("create_group");
-      socket.off("group_created");
       socket.off("update_group_members");
       socket.off("failed_update_members");
-      socket.off("send_group");
       socket.off("group_creation_failed");
       socket.off("delete_group");
-      socket.off("group_deleted");
       socket.off("user_update_roomIds");
     };
-    // eslint-disable-next-line
   }, []);
 
   const skeletonRooms: RoomsType = useMemo(() => {
@@ -451,7 +420,6 @@ const SideBar: FC<Props> = ({
       ) : (
         <Rooms
           rooms={skeletonRooms}
-          handleRoomDelete={handleRoomDelete}
           handleRoomEnter={handleRoomEnter}
           addedRoomId={addedRoomId}
           roomId={room?.id}
@@ -460,48 +428,25 @@ const SideBar: FC<Props> = ({
         />
       )}
 
-      <Modal
-        opened={isNewGroupPreviewOpened}
-        close={handleCloseNewGroupPreview}
-        title="New Group Preview"
-        isFormSubmitted={inputError.length === 0}
-      >
-        <NewGroupPreview
-          handleInputChange={handleInputChange}
-          inputError={inputError}
-          roomName={addedGroupInfo.name}
-          submitNewGroupCreationForm={submitNewGroupCreationForm}
-        />
-      </Modal>
-
-      <Modal
-        close={handleCloseAddedGroupInfo}
-        opened={isAddMembersToNewGroupModalOpened}
-        title="Add members"
-        subModal
-        subModalClose={handleGetBackToThePreviousModal}
-        isFormSubmitted={true}
-      >
-        <AddMembersOnGroupCreation
-          userId={user.id}
-          rooms={rooms}
-          setAddedGroupInfo={setAddedGroupInfo}
-          addedGroupInfo={addedGroupInfo}
-          handleCreateGroup={handleCreateGroup}
-        />
-      </Modal>
-
-      <Modal
-        title="User Modal"
-        opened={isUserInfoModalOpen}
-        close={() => setIsUserInfoModalOpen(false)}
-      >
-        <UserInfo
-          user={user}
-          currentUser={selectedUser}
-          handleSendDirectMessage={handleSendDirectMessage}
-        />
-      </Modal>
+      <AddNewGroupModals
+        addedGroupInfo={addedGroupInfo}
+        handleCloseAddedGroupInfo={handleCloseAddedGroupInfo}
+        handleCloseNewGroupPreview={handleCloseNewGroupPreview}
+        handleCloseUserInfoModal={() => setIsUserInfoModalOpen(false)}
+        handleCreateGroup={handleCreateGroup}
+        handleGetBackToThePreviousModal={handleGetBackToThePreviousModal}
+        handleInputChange={handleInputChange}
+        handleSendDirectMessage={handleSendDirectMessage}
+        inputError={inputError}
+        isAddMembersToNewGroupModalOpened={isAddMembersToNewGroupModalOpened}
+        isNewGroupPreviewOpened={isNewGroupPreviewOpened}
+        isUserInfoModalOpen={isUserInfoModalOpen}
+        rooms={rooms}
+        selectedUser={selectedUser}
+        setAddedGroupInfo={setAddedGroupInfo}
+        submitNewGroupCreationForm={submitNewGroupCreationForm}
+        user={user}
+      />
     </div>
   );
 };

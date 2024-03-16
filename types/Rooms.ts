@@ -1,4 +1,4 @@
-import { ID, USER_STATUS } from './PublicTypes';
+import { ID, USER_STATUS } from "./PublicTypes";
 
 export type PrivateRoom = {
   id: ID;
@@ -13,10 +13,10 @@ export type PrivateRoom = {
 
 export type Group = Omit<
   PrivateRoom,
-  'status' | 'commonId' | 'opponentRoomId'
+  "status" | "commonId" | "opponentRoomId"
 > & {
   members: ID[];
-  public: boolean;
+  isPublic: boolean;
 };
 
 export type Groups = Group[] | null;
@@ -27,6 +27,6 @@ export type RoomType = PrivateRoom | Group;
 export type RoomsType = RoomType[];
 
 export type AddedGroupInfo = {
-  name: string,
-  members: PrivateRooms,
-}
+  name: string;
+  members: PrivateRooms;
+};

@@ -94,7 +94,7 @@ const DeleteRoomForm: FC<Props> = ({
       <div className="flex gap-3 self-end">
         <ModalButton title="Cancel" onClick={closeModal} />
         <ModalButton
-          title={`Delete ${title} room`}
+          title={`Delete "${title}" room`}
           danger
           onClick={handleRoomDelete}
         />

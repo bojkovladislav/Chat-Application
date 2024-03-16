@@ -16,14 +16,12 @@ import useSkeletonRooms from "../../../hooks/useSkeletonRooms";
 interface Props {
   currentRoom: RoomType;
   openRoomUserModal: () => void;
-  closeRoomInfoModal: () => void;
   setSelectedMember?: SetState<PrivateRoom | null>;
 }
 
 const ViewRoomInfo: FC<Props> = ({
   currentRoom,
   openRoomUserModal,
-  closeRoomInfoModal,
   setSelectedMember,
 }) => {
   const { name, avatar, description } = currentRoom;
@@ -51,7 +49,6 @@ const ViewRoomInfo: FC<Props> = ({
       setMembers(membersFromServer.data.groupMembers);
     } catch (error) {
       setMembers(null);
-      console.log(error);
       throw Error("Failed to fetch members!");
     } finally {
       setLoading(false);
@@ -62,7 +59,6 @@ const ViewRoomInfo: FC<Props> = ({
     if (loading) return;
 
     openRoomUserModal();
-    closeRoomInfoModal();
     setSelectedMember && setSelectedMember(member);
   };
 

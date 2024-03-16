@@ -1,16 +1,12 @@
-import { FC, FormEvent, useEffect, useState } from "react";
+import { FC, FormEvent } from "react";
 import { ModalButton } from "../../shared/ModalButton";
 import {
   AddedGroupInfo,
   PrivateRoom,
-  PrivateRooms,
   RoomsType,
 } from "../../../../types/Rooms";
-import { Members } from "../../shared/Members";
 import { ID, SetState } from "../../../../types/PublicTypes";
-import { getFriends } from "../../../adapters/api";
-import { AddedGroup } from "../../core/AddedGroup";
-import useSkeletonRooms from "../../../hooks/useSkeletonRooms";
+import { AddMembers } from "../../core/AddMembers";
 
 interface Props {
   rooms: RoomsType;
@@ -27,15 +23,7 @@ const AddMembersOnGroupCreation: FC<Props> = ({
   userId,
   handleCreateGroup,
 }) => {
-  const [availableMembers, setAvailableMembers] = useState<PrivateRooms | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(true);
-  const skeletonMembers = useSkeletonRooms(2);
-
   const handleMemberClick = (member: PrivateRoom) => {
-    if (loading) return;
-
     setAddedGroupInfo((prevGroup) => {
       if (!prevGroup) return prevGroup;
 
@@ -56,20 +44,6 @@ const AddMembersOnGroupCreation: FC<Props> = ({
     });
   };
 
-  const handleFetchFriends = async () => {
-    try {
-      setLoading(true);
-      const roomIds = rooms.map((room) => room.id);
-      const friendsFromTheServer = await getFriends(roomIds, userId);
-
-      setAvailableMembers(friendsFromTheServer.data.friends);
-    } catch (error) {
-      console.log("Error fetching friends!", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteMember = (id: ID) => {
     setAddedGroupInfo((prevGroup) => ({
       ...prevGroup,
@@ -79,35 +53,17 @@ const AddMembersOnGroupCreation: FC<Props> = ({
     }));
   };
 
-  useEffect(() => {
-    handleFetchFriends();
-    // eslint-disable-next-line
-  }, []);
-
   return (
     <form
       className="flex w-[300px] flex-col gap-3"
       onSubmit={handleCreateGroup}
     >
-      <div className="flex flex-wrap gap-3 px-3">
-        {addedGroupInfo?.members &&
-          addedGroupInfo?.members.map(({ name, id, avatar }) => (
-            <AddedGroup
-              name={name}
-              avatar={avatar}
-              key={id}
-              id={id}
-              handleDeleteMember={handleDeleteMember}
-            />
-          ))}
-      </div>
-
-      <Members
-        handleMemberClick={handleMemberClick}
+      <AddMembers
+        rooms={rooms}
+        userId={userId}
         addedMembers={addedGroupInfo.members}
-        loading={loading}
-        members={availableMembers}
-        skeletonMembers={skeletonMembers}
+        handleDeleteMember={handleDeleteMember}
+        handleMemberClick={handleMemberClick}
       />
 
       <div className="w-fit self-end px-3">

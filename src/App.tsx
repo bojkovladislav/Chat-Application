@@ -27,6 +27,7 @@ function App() {
   const [areMessagesLoading, setAreMessagesLoading] = useState(false);
   const [areRoomsLoading, setAreRoomsLoading] = useState(true);
   const [filteredChats, setFilteredChats] = useState<RoomsType | null>(null);
+  const [addedRoomId, setAddedRoomId] = useState<ID | null>(null);
   const userFromLS: User = getItemFromLS("user");
 
   const {
@@ -106,12 +107,100 @@ function App() {
     });
   };
 
+  const joinRoom = (id: ID | string) => {
+    if (!id) return;
+
+    socket.emit("join_room", id);
+  };
+
+  const handleAddRoomLocally = (room: RoomType) => {
+    setAddedRoomId(room.id);
+    setRooms((prevRooms) =>
+      !prevRooms.some((r) => r.id === room.id)
+        ? [room, ...prevRooms]
+        : prevRooms,
+    );
+  };
+
+  const handleEndRoomCreation = (room: RoomType) => {
+    setRoom(room);
+    setAreMessagesLoading(false);
+
+    setAddedRoomId(null);
+  };
+
+  const handleRoomDeleteLocally = (id: ID) => {
+    if (room && id === room.id) {
+      setRoom(null);
+    }
+
+    setRooms((prevRooms) => {
+      return prevRooms.filter((room: RoomType) => room.id !== id);
+    });
+    setRoom(null);
+  };
+
   useEffect(() => {
     if (userFromLS) updateUser();
 
     setAreRoomsLoading(true);
 
+    socket.on("send_group", handleAddRoomLocally);
+
+    socket.on("group_created", (group: Group) => {
+      if (user && group.creators[0] === user.id) {
+        handleEndRoomCreation(group);
+        joinRoom(group.id);
+
+        return;
+      }
+
+      setAreMessagesLoading(false);
+      setAddedRoomId(null);
+    });
+
+    socket.on("send_private-room_to_opponent", (newPrivateRoom) => {
+      setRooms((prevRooms) => [newPrivateRoom, ...prevRooms]);
+      setFilteredChats(
+        (prevChats) => prevChats && [...prevChats, newPrivateRoom],
+      );
+    });
+
+    socket.on("private-room_created", handleEndRoomCreation);
+
+    socket.on("group_deleted", handleRoomDeleteLocally);
+
+    socket.on("group_credentials_updated", (updatedGroupCredentials) => {
+      const { name, isPublic, description } = updatedGroupCredentials;
+
+      setRoom(
+        (prevRoom) => prevRoom && { ...prevRoom, name, isPublic, description },
+      );
+
+      setRooms((prevRooms) => {
+        return prevRooms.map((room) => {
+          if (room.id === updatedGroupCredentials.id) {
+            return {
+              ...room,
+              name,
+              isPublic,
+              description,
+            };
+          }
+
+          return room;
+        });
+      });
+    });
+
     return () => {
+      socket.off("send_group");
+      socket.off("update_group_credentials");
+      socket.off("private-room_created");
+      socket.off("group_deleted");
+      socket.off("group_credentials_updated");
+      socket.off("send_private-room_to_opponent");
+      socket.off("group_created");
       socket.off("create_user");
       socket.off("user_created");
       socket.off("user_exists");
@@ -120,7 +209,7 @@ function App() {
       socket.off("failed_get_messages");
     };
     // eslint-disable-next-line
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     loadMessages();
@@ -153,7 +242,7 @@ function App() {
           {user ? (
             <>
               <header
-                className={`flex items-center justify-between border-b-2 border-slate-600 bg-slate-800 p-5 md:px-52 md:py-10 ${
+                className={`flex items-center justify-between border-b-2 border-slate-600 bg-slate-800 p-5 md:px-52 md:py-5 ${
                   matches && room ? "hidden" : "block"
                 }`}
               >
@@ -173,9 +262,11 @@ function App() {
                     !room ? (
                       <SideBar
                         user={user}
+                        addedRoomId={addedRoomId}
+                        setAddedRoomId={setAddedRoomId}
                         areRoomsLoading={areRoomsLoading}
                         setRooms={setRooms}
-                        setIsMessagesLoading={setAreMessagesLoading}
+                        setAreMessagesLoading={setAreMessagesLoading}
                         rooms={rooms}
                         room={room}
                         setRoom={setRoom}
@@ -208,7 +299,9 @@ function App() {
                         <SideBar
                           user={user}
                           setRooms={setRooms}
-                          setIsMessagesLoading={setAreMessagesLoading}
+                          addedRoomId={addedRoomId}
+                          setAddedRoomId={setAddedRoomId}
+                          setAreMessagesLoading={setAreMessagesLoading}
                           rooms={rooms}
                           room={room}
                           areRoomsLoading={areRoomsLoading}
@@ -247,5 +340,11 @@ function App() {
     </div>
   );
 }
+
+// Todo:
+// Make my rooms a global state and add more methods for adding a room, deleting, updating, and so on.
+
+// Add the ability to change a photo
+// Add reactions to messages
 
 export default App;

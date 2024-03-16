@@ -1,4 +1,4 @@
-import { FC, MouseEvent } from "react";
+import { FC } from "react";
 import {
   RoomType,
   Group as GroupType,
@@ -16,11 +16,6 @@ interface Props {
   handleRoomEnter:
     | ((currentRoom: PrivateRoomType) => Promise<void>)
     | ((currentRoom: RoomType) => void);
-  handleRoomDelete: (
-    roomType: "group" | "private-room",
-    e: MouseEvent,
-    currentRoom: RoomType,
-  ) => void;
   roomId?: ID;
   user: User;
   addedRoomId: ID | null;
@@ -31,25 +26,21 @@ interface Props {
 const Rooms: FC<Props> = ({
   rooms,
   handleRoomEnter,
-  handleRoomDelete,
   roomId,
-  user,
   addedRoomId,
   areRoomsLoading,
 }) => {
   return (
     <div className="flex flex-col">
       {rooms.map((currentRoom: RoomType) => {
-        const { id, name, creators, avatar } = currentRoom;
+        const { id, name, avatar } = currentRoom;
         return (currentRoom as GroupType).members !== undefined ? (
           <RoomWrapper
             key={id}
             handleRoomEnter={handleRoomEnter}
-            handleRoomDelete={handleRoomDelete}
             active={roomId === currentRoom.id}
             currentRoom={currentRoom}
             deleteRoomCondition={addedRoomId !== currentRoom.id}
-            showDeleteButton={creators.includes(user.id)}
             isRoomsLoading={areRoomsLoading}
           >
             <Group
@@ -63,11 +54,9 @@ const Rooms: FC<Props> = ({
           <RoomWrapper
             key={id}
             handleRoomEnter={handleRoomEnter}
-            handleRoomDelete={handleRoomDelete}
             active={roomId === currentRoom.id}
             currentRoom={currentRoom}
             deleteRoomCondition={addedRoomId !== currentRoom.id}
-            showDeleteButton={creators.includes(user.id)}
             isRoomsLoading={areRoomsLoading}
           >
             <PrivateRoom
