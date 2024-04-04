@@ -1,17 +1,28 @@
-import { FC, useMemo } from "react";
+import { FC, ReactNode, useMemo } from "react";
 import { USER_STATUS } from "../../../../types/PublicTypes";
 
 interface Props {
-  name: string;
+  name?: string;
   avatar: string;
   status?: USER_STATUS;
   avatarSize?: number;
+  icon?: ReactNode;
+  hover?: boolean;
 }
 
-const Avatar: FC<Props> = ({ name, avatar, status, avatarSize }) => {
+const Avatar: FC<Props> = ({
+  name,
+  avatar,
+  status,
+  avatarSize,
+  icon,
+  hover,
+}) => {
   const size = useMemo(() => avatarSize || 40, [avatarSize]);
 
   const handleGetLogo = () => {
+    if (!name) return;
+
     const words = name.split(" ");
     const capitalizeFirstLetter = (word: string) =>
       word.charAt(0).toUpperCase();
@@ -42,7 +53,9 @@ const Avatar: FC<Props> = ({ name, avatar, status, avatarSize }) => {
 
   return (
     <div
-      className={`relative flex items-center justify-center rounded-full text-center font-semibold`}
+      className={`relative flex items-center justify-center rounded-full text-center font-semibold ${
+        hover && "cursor-pointer opacity-70 hover:opacity-100"
+      }`}
       style={{
         backgroundColor: avatar || "transparent",
         height: `${size}px`,
@@ -50,7 +63,7 @@ const Avatar: FC<Props> = ({ name, avatar, status, avatarSize }) => {
         fontSize: `${size / 2}px`,
       }}
     >
-      {handleGetLogo()}
+      {icon ? icon : handleGetLogo()}
       {status && (
         <div
           className={`${handleGetStatusColor()} absolute bottom-0 right-0 h-3 w-3 rounded-lg border-2 border-white`}

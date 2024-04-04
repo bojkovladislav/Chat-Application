@@ -5,19 +5,26 @@ import { SetState } from "../../../../types/PublicTypes";
 import { Group, RoomType } from "../../../../types/Rooms";
 import { Messages } from "../../../../types/Messages";
 import { User } from "../../../../types/Users";
-import { handlePlural } from "../../../helpers";
+import { handlePlural } from "../../../utils/handlePlural";
 import { RoomSettingsMenu } from "../RoomSettingsMenu";
 
 interface Props {
   room: RoomType | null;
   user: User;
-  setRoom: SetState<RoomType | null>
-  setMessages: SetState<Messages | null>
+  setRoom: SetState<RoomType | null>;
+  setMessages: SetState<Messages | null>;
   openRoomInfoModal: () => void;
   currentTypingUserName: string | null;
 }
 
-const ChatHeader: FC<Props> = ({ room, user, setRoom, setMessages, openRoomInfoModal, currentTypingUserName }) => {
+const ChatHeader: FC<Props> = ({
+  room,
+  user,
+  setRoom,
+  setMessages,
+  openRoomInfoModal,
+  currentTypingUserName,
+}) => {
   const matches = useMediaQuery("(max-width: 765px)");
 
   return (

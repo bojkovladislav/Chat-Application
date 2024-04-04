@@ -6,12 +6,14 @@ import {
   useEffect,
   KeyboardEventHandler,
   memo,
+  ChangeEvent,
+  MutableRefObject,
 } from "react";
-import { EmojiSmile, Send } from "react-bootstrap-icons";
+import { CheckLg, EmojiSmile, Image, Send } from "react-bootstrap-icons";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { socket } from "../../../adapters/socket";
 import { User } from "../../../../types/Users";
-import { ID, SetState } from "../../../../types/PublicTypes";
+import { ID, SelectedImage, SetState } from "../../../../types/PublicTypes";
 import { Message, Messages, OperatedMessage } from "../../../../types/Messages";
 import { PrivateRoom, RoomType } from "../../../../types/Rooms";
 import { MessageOperationBar } from "../../core/MessageOperationBar";
@@ -22,8 +24,19 @@ interface Props {
   user: User;
   room: RoomType;
   setMessages: SetState<Messages | null>;
+  setImageToEdit: SetState<SelectedImage | null>;
   operatedMessage: OperatedMessage;
   setOperatedMessage: SetState<OperatedMessage>;
+  didMessageChange: MutableRefObject<boolean>;
+  imageToEdit: SelectedImage | null;
+  setSelectedImages: SetState<SelectedImage[]>;
+  handleOpenImageInFullScreen: (image: SelectedImage) => void;
+  handleImageUpdate: (
+    e: ChangeEvent<HTMLInputElement>,
+    currentImageId: string,
+  ) => Promise<{ currentImageId: string; updatedImage: SelectedImage } | null>;
+  selectedImages: SelectedImage[];
+  messages: Message[] | null;
 }
 
 const SendMessageForm: FC<Props> = memo(
@@ -31,10 +44,18 @@ const SendMessageForm: FC<Props> = memo(
     user,
     room,
     setMessages,
+    handleOpenImageInFullScreen,
     setSentMessageId,
+    imageToEdit,
     isMessagesLoading,
     operatedMessage,
+    handleImageUpdate,
+    setImageToEdit,
     setOperatedMessage,
+    didMessageChange,
+    selectedImages,
+    setSelectedImages,
+    messages,
   }) => {
     const [isEmojiClicked, setIsEmojiClicked] = useState(false);
     const [message, setMessage] = useState("");
@@ -55,7 +76,40 @@ const SendMessageForm: FC<Props> = memo(
     const handleCloseBar = () => {
       setMessage("");
 
+      setImageToEdit(null);
+
+      didMessageChange.current = false;
+
+    // eslint-disable-next-line
+      if (!!selectedImages.length) {
+        setSelectedImages([]);
+      }
+
       setOperatedMessage({ message: null, edited: false, replied: false });
+    };
+
+    const handleUpdateMessage = (images?: SelectedImage[] | null) => {
+      setMessages((prevMessages) => {
+        const updatedMessages = prevMessages?.messages.map((msg) => {
+          if (
+            operatedMessage.message &&
+            msg.id === operatedMessage.message.id
+          ) {
+            return {
+              ...msg,
+              content: message,
+              images: images ? images : operatedMessage.message.images,
+            };
+          }
+
+          return msg;
+        });
+
+        return {
+          roomId: room.id,
+          messages: updatedMessages || [],
+        };
+      });
     };
 
     const handleSetMessage = (newMessage: Message) => {
@@ -74,13 +128,48 @@ const SendMessageForm: FC<Props> = memo(
     const handleSendMessage = (e: FormEvent | KeyboardEvent) => {
       e.preventDefault();
 
-      if (message === "") return;
+      const isPhoto = !!selectedImages.length;
 
-      setMessage("");
+      if (message === "" && !isPhoto && !didMessageChange.current) return;
 
-      handleCloseBar();
+      if (operatedMessage.edited) {
+        const foundMessage =
+          messages &&
+          messages.find(
+            (img) =>
+              operatedMessage.message && img.id === operatedMessage.message.id,
+          );
 
-      if (!operatedMessage.edited) {
+        const images =
+          foundMessage &&
+          foundMessage.images &&
+          foundMessage?.images.map((img) => {
+            if (
+              imageToEdit &&
+              img.id === imageToEdit.id &&
+              operatedMessage.message?.images
+            ) {
+              console.log("selected image", img);
+              return operatedMessage.message?.images[0];
+            }
+
+            return img;
+          });
+
+        socket.emit(
+          "update_message",
+          (room as PrivateRoom).commonId
+            ? (room as PrivateRoom).commonId
+            : room.id,
+          operatedMessage.message?.id,
+          {
+            content: message,
+            images,
+          },
+        );
+
+        handleUpdateMessage(images);
+      } else if (isPhoto) {
         socket.emit(
           "create_message",
           room,
@@ -90,39 +179,27 @@ const SendMessageForm: FC<Props> = memo(
           operatedMessage.replied && {
             author: operatedMessage.message?.authorName,
             message: operatedMessage.message?.content,
+            id: operatedMessage.message?.id,
+          },
+          selectedImages,
+        );
+      } else if (message) {
+        socket.emit(
+          "create_message",
+          room,
+          user,
+          message,
+          getDate(),
+          operatedMessage.replied && {
+            author: operatedMessage.message?.authorName,
+            message: operatedMessage.message?.content,
+            id: operatedMessage.message?.id,
+            images: operatedMessage.message?.images,
           },
         );
-      } else {
-        socket.emit(
-          "update_message",
-          (room as PrivateRoom).commonId
-            ? (room as PrivateRoom).commonId
-            : room.id,
-          operatedMessage.message?.id,
-          message,
-        );
-
-        setMessages((prevMessages) => {
-          const updatedMessages = prevMessages?.messages.map((msg) => {
-            if (
-              operatedMessage.message &&
-              msg.id === operatedMessage.message.id
-            ) {
-              return {
-                ...msg,
-                content: message,
-              };
-            }
-
-            return msg;
-          });
-
-          return {
-            roomId: room.id,
-            messages: updatedMessages || [],
-          };
-        });
       }
+
+      handleCloseBar();
     };
 
     const updateTextareaHeight = () => {
@@ -152,6 +229,17 @@ const SendMessageForm: FC<Props> = memo(
       if (e.key === "Enter" && !e.shiftKey) handleSendMessage(e);
     };
 
+    const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+      const updatedContent = await handleImageUpdate(e, "");
+
+      if (updatedContent) {
+        setSelectedImages((prevImages) => [
+          ...prevImages,
+          updatedContent.updatedImage,
+        ]);
+      }
+    };
+
     useEffect(() => {
       socket.on("send_message", handleSetMessage);
       socket.on("message_created", () => {
@@ -178,28 +266,60 @@ const SendMessageForm: FC<Props> = memo(
 
     return (
       <form
-        className="z-10 flex flex-col gap-5 border-t border-slate-600 bg-slate-900 px-5 py-3"
+        className="z-10 flex flex-col gap-5 bg-slate-900"
         onSubmit={handleSendMessage}
       >
         {operatedMessage.message && (
           <MessageOperationBar
+            handleImageUpdate={handleImageUpdate}
             message={operatedMessage.message}
+            setOperatedMessage={setOperatedMessage}
+            didMessageChange={didMessageChange}
             operation={operatedMessage.edited ? "edit" : "reply"}
             handleCloseBar={handleCloseBar}
+            handleOpenImageInFullScreen={handleOpenImageInFullScreen}
           />
         )}
 
         <div className="flex w-full items-center gap-5">
-          <EmojiSmile
-            color="#3b82f6"
-            size={20}
-            cursor="pointer"
-            onClick={() => setIsEmojiClicked(!isEmojiClicked)}
-          />
+          <div className="flex items-center gap-5">
+            {!operatedMessage.message && (
+              <div>
+                <label htmlFor="fileInput">
+                  <Image color="#3b82f6" size={20} cursor="pointer" />
+                </label>
+                {selectedImages.length < 5 && (
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept=".png, .jpeg, .jpg"
+                    className="hidden"
+                    onChange={async (e) => await handleFileChange(e)}
+                  />
+                )}
+              </div>
+            )}
+
+            <EmojiSmile
+              color="#3b82f6"
+              size={20}
+              cursor="pointer"
+              onClick={() => setIsEmojiClicked(!isEmojiClicked)}
+            />
+          </div>
           {isEmojiClicked && (
-            <div className="absolute bottom-16">
+            <div
+              className="bottom absolute"
+              style={{
+                bottom:
+                  !selectedImages.length && !operatedMessage.message
+                    ? "4rem"
+                    : "8rem",
+              }}
+            >
               <EmojiPicker
                 theme={Theme.DARK}
+                lazyLoadEmojis
                 onEmojiClick={(emoji) =>
                   setMessage((prevMessage) => `${prevMessage}${emoji.emoji}`)
                 }
@@ -216,7 +336,19 @@ const SendMessageForm: FC<Props> = memo(
             onKeyDown={handleType}
           />
           <button type="submit">
-            <Send color="#3b82f6" size={20} cursor="pointer" />
+            {operatedMessage.message ? (
+              <CheckLg
+                color="#3b82f6"
+                className="h-[20px] w-[20px]"
+                cursor="pointer"
+              />
+            ) : (
+              <Send
+                color="#3b82f6"
+                className="h-[20px] w-[20px]"
+                cursor="pointer"
+              />
+            )}
           </button>
         </div>
       </form>

@@ -10,6 +10,7 @@ interface Props {
   subModal?: boolean;
   subModalClose?: () => void;
   isFormSubmitted?: boolean;
+  image?: boolean;
 }
 
 const Modal: FC<Props> = ({
@@ -20,6 +21,7 @@ const Modal: FC<Props> = ({
   subModal,
   subModalClose,
   isFormSubmitted,
+  image,
 }) => {
   return (
     <ModalUI.Root
@@ -54,7 +56,13 @@ const Modal: FC<Props> = ({
           </div>
           <ModalUI.CloseButton />
         </ModalUI.Header>
-        <ModalUI.Body className="bg-[#0f172a] px-0 pt-3">
+        <ModalUI.Body
+          className="bg-[#0f172a] px-0"
+          style={{
+            paddingTop: image ? "0" : "0.75rem",
+            paddingBottom: image ? "0" : "0.75rem",
+          }}
+        >
           {children}
         </ModalUI.Body>
       </ModalUI.Content>

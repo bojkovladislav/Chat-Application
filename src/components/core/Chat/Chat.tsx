@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState, memo, FC } from "react";
+import { useEffect, useRef, useState, memo, FC, ChangeEvent } from "react";
 import { MessageField } from "../MessageField";
 import { SendMessageForm } from "../../forms/SendMessageForm";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { User } from "../../../../types/Users";
 import { v4 as uuid } from "uuid";
 import { Messages, OperatedMessage } from "../../../../types/Messages";
-import { ID, SetState } from "../../../../types/PublicTypes";
 import {
-  Group,
+  ID,
+  SelectedImage as SelectedImageType,
+  SetState,
+} from "../../../../types/PublicTypes";
+import {
   PrivateRoom,
   PrivateRooms,
   RoomType,
@@ -20,6 +23,9 @@ import useDisclosureStore from "../../../store/useRoomDisclosureStore";
 import { ChatHeader } from "../ChatHeader";
 import { ChatSettingsModals } from "../ChatSettingsModals";
 import useGroupOperations from "../../../hooks/useGroupOperations";
+import { SelectedImage } from "../../shared/SelectedImage";
+import { Modal } from "../../shared/Modal";
+import { InfoCircleFill } from "react-bootstrap-icons";
 
 interface Props {
   messages: Messages | null;
@@ -33,6 +39,8 @@ interface Props {
   setFilteredChats: SetState<RoomsType | null>;
   setAreMessagesLoading: SetState<boolean>;
   rooms: RoomsType;
+  selectedImages: SelectedImageType[];
+  setSelectedImages: SetState<SelectedImageType[]>;
 }
 // eslint-disable-next-line
 const Chat: FC<Props> = ({
@@ -47,6 +55,8 @@ const Chat: FC<Props> = ({
   setFilteredChats,
   setAreMessagesLoading,
   rooms,
+  selectedImages,
+  setSelectedImages,
 }) => {
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const [sentMessageId, setSentMessageId] = useState<ID | null>(null);
@@ -91,6 +101,15 @@ const Chat: FC<Props> = ({
   const [membersForMembersModal, setMembersForMembersModal] =
     useState<PrivateRooms>([]);
   const { addMember, removeMember } = useGroupOperations(setRooms, setRoom);
+  const [
+    isImageInFullScreenModalOpened,
+    { open: openImageInFullScreenModal, close: closeImageInFullScreenModal },
+  ] = useDisclosure(false);
+  const [openedInFullScreenImage, setOpenedInFullScreenImage] =
+    useState<SelectedImageType | null>(null);
+  const didMessageChange = useRef(false);
+  const [imageToEdit, setImageToEdit] = useState<SelectedImageType | null>(null);
+  const matches = useMediaQuery("(max-width: 765px)");
 
   const scrollChatToBottom = (smooth: boolean = false) => {
     if (chatWindowRef.current && !isMessagesLoading) {
@@ -179,6 +198,31 @@ const Chat: FC<Props> = ({
     setAreMessagesLoading(false);
   };
 
+  const handleSelectedImageClick = (selectedImage: SelectedImageType) => {
+    setOpenedInFullScreenImage(selectedImage);
+    openImageInFullScreenModal();
+  };
+
+  const handleImageUpdate = async (
+    e: ChangeEvent<HTMLInputElement>,
+    currentImageId: string,
+  ) => {
+    const newImage = e.target.files && e.target.files[0];
+
+    if (!newImage) return null;
+
+    const imageUrl = URL.createObjectURL(newImage);
+
+    const updatedImage: SelectedImageType = {
+      src: imageUrl,
+      id: uuid(),
+      name: newImage.name,
+      data: await newImage.arrayBuffer(),
+    };
+
+    return { currentImageId, updatedImage };
+  };
+
   useEffect(() => {
     scrollChatToBottom();
     // eslint-disable-next-line
@@ -192,8 +236,6 @@ const Chat: FC<Props> = ({
     }
     // eslint-disable-next-line
   }, [newMessageFromOpponentId, isUserNearBottom]);
-
-  console.log(room && (room as Group).members);
 
   useEffect(() => {
     socket.on("send_updated_group_members", (groupId: ID, memberId: ID) => {
@@ -248,8 +290,12 @@ const Chat: FC<Props> = ({
             <MessageField
               sentMessageId={sentMessageId}
               openRoomUserModal={openRoomUserModal}
+              setSelectedImages={setSelectedImages}
+              operatedMessage={operatedMessage}
               user={user}
               setNewMessageFromOpponentId={setNewMessageFromOpponentId}
+              setImageToEdit={setImageToEdit}
+              handleSelectedImageClick={handleSelectedImageClick}
               isMessagesLoading={isMessagesLoading}
               messages={messages}
               setMessages={setMessages}
@@ -260,15 +306,54 @@ const Chat: FC<Props> = ({
             />
           </div>
 
-          <SendMessageForm
-            setSentMessageId={setSentMessageId}
-            operatedMessage={operatedMessage}
-            setOperatedMessage={setOperatedMessage}
-            user={user}
-            room={room}
-            isMessagesLoading={isMessagesLoading}
-            setMessages={setMessages}
-          />
+          <div className="flex flex-col gap-5 border-t border-slate-600 px-5 py-3 ">
+            <SendMessageForm
+              setSentMessageId={setSentMessageId}
+              imageToEdit={imageToEdit}
+              setImageToEdit={setImageToEdit}
+              handleImageUpdate={handleImageUpdate}
+              setSelectedImages={setSelectedImages}
+              messages={messages && messages.messages}
+              didMessageChange={didMessageChange}
+              operatedMessage={operatedMessage}
+              setOperatedMessage={setOperatedMessage}
+              handleOpenImageInFullScreen={(image: SelectedImageType) => {
+                openImageInFullScreenModal();
+                setOpenedInFullScreenImage(image);
+              }}
+              user={user}
+              room={room}
+              isMessagesLoading={isMessagesLoading}
+              setMessages={setMessages}
+              selectedImages={selectedImages}
+            />
+
+            {!!selectedImages.length && (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-4">
+                  {selectedImages.map((selectedImage) => {
+                    return (
+                      <SelectedImage
+                        key={selectedImage.id}
+                        image={selectedImage}
+                        setSelectedImages={setSelectedImages}
+                        handleImageUpdate={handleImageUpdate}
+                        handleSelectedImageClick={
+                          !matches ? handleSelectedImageClick : () => {}
+                        }
+                      />
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <InfoCircleFill className=" text-slate-500" />
+                  <p className="text-[12px] text-slate-500">
+                    Maximum number of files: 5
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <h1>Please, select a room to start messaging</h1>
@@ -287,6 +372,19 @@ const Chat: FC<Props> = ({
           />
         </>
       )}
+
+      <Modal
+        close={closeImageInFullScreenModal}
+        opened={isImageInFullScreenModalOpened}
+        title={openedInFullScreenImage?.name || "image preview"}
+        image
+      >
+        <img
+          src={openedInFullScreenImage?.src}
+          alt={openedInFullScreenImage?.name}
+          className="object-fit max-h-[500px] w-full max-w-[850px]"
+        />
+      </Modal>
 
       <ChatSettingsModals
         addedGroupMembers={addedGroupMembers}

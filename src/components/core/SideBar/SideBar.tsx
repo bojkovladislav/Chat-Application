@@ -20,7 +20,12 @@ import {
   Group,
   AddedGroupInfo,
 } from "../../../../types/Rooms";
-import { ID, SetState, USER_STATUS } from "../../../../types/PublicTypes";
+import {
+  ID,
+  SelectedImage,
+  SetState,
+  USER_STATUS,
+} from "../../../../types/PublicTypes";
 import { AddNewChat } from "../../forms/AddNewChat";
 import { SearchBar } from "../SearchBar";
 import { Rooms } from "../Rooms";
@@ -41,6 +46,7 @@ interface Props {
   filteredChats: RoomsType | null;
   setFilteredChats: SetState<RoomsType | null>;
   addedRoomId: ID | null;
+  setSelectedImages: SetState<SelectedImage[]>;
   setAddedRoomId: SetState<ID | null>;
 }
 // eslint-disable-next-line
@@ -56,6 +62,7 @@ const SideBar: FC<Props> = ({
   setFilteredChats,
   addedRoomId,
   setAddedRoomId,
+  setSelectedImages,
 }) => {
   const [inputError, setInputError] = useState("");
   const [filteredUsers, setFilteredUsers] = useState<PrivateRooms>(null);
@@ -220,6 +227,8 @@ const SideBar: FC<Props> = ({
 
   const handleRoomEnter = (currentRoom: RoomType) => {
     if (currentRoom.id === room?.id) return;
+
+    setSelectedImages([]);
 
     const isGroup = !!(currentRoom as Group).members;
     let roomToUpdate = currentRoom;

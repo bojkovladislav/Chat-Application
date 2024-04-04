@@ -1,4 +1,11 @@
-import { ID } from './PublicTypes';
+import { ID, SelectedImage } from "./PublicTypes";
+
+export type Reaction = {
+  reaction: string;
+  authorId: ID;
+  id: ID;
+  messageId: ID;
+};
 
 export type Message = {
   id: ID;
@@ -7,7 +14,14 @@ export type Message = {
   avatar: string;
   content: string;
   date: string;
-  repliedMessage?: { author: string; message: string };
+  repliedMessage: {
+    author: string;
+    message: string;
+    images: SelectedImage[] | null;
+    id: ID;
+  } | null;
+  images: SelectedImage[] | null;
+  reactions: Reaction[] | null;
 };
 
 export type Messages = {

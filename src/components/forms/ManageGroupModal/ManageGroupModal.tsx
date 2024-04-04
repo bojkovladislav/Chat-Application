@@ -2,7 +2,7 @@ import { FC, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { GroupInfo } from "../../../../types/GroupInfo";
 import { Group } from "../../../../types/Rooms";
 import { Avatar } from "../../shared/Avatar";
-import { People, Sliders, Star } from "react-bootstrap-icons";
+import { Camera, People, Sliders, Star } from "react-bootstrap-icons";
 import { ModalButton } from "../../shared/ModalButton";
 import { socket } from "../../../adapters/socket";
 import { User } from "../../../../types/Users";
@@ -140,7 +140,14 @@ const ManageGroupModal: FC<Props> = ({
     <form onSubmit={handleFormSubmit}>
       <div className="flex flex-col gap-5 px-3 pb-4">
         <div className="flex gap-5">
-          <Avatar avatar={group.avatar} name={group.name} avatarSize={60} />
+          <label htmlFor=""></label>
+          <Avatar
+            avatar={group.avatar}
+            icon={<Camera />}
+            avatarSize={60}
+            hover
+          />
+
           <div className="flex flex-col">
             <label htmlFor="group-name" className="text-blue-400">
               Group name

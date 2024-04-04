@@ -5,7 +5,7 @@ import {
   PrivateRooms,
   RoomType,
 } from "../../../../types/Rooms";
-import { handlePlural } from "../../../helpers";
+import { handlePlural } from "../../../utils/handlePlural"; 
 import { Members } from "../../shared/Members";
 import { useMediaQuery } from "@mantine/hooks";
 import { AvatarWithName } from "../../shared/AvatarWithName";

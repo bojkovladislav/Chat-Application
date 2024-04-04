@@ -16,7 +16,7 @@ import { BoxArrowRight } from "react-bootstrap-icons";
 
 import { useResizable } from "react-resizable-layout";
 import { SplitterForResize } from "./components/shared/SplitterForResize";
-import { ID } from "../types/PublicTypes.ts";
+import { ID, SelectedImage } from "../types/PublicTypes.ts";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -28,6 +28,7 @@ function App() {
   const [areRoomsLoading, setAreRoomsLoading] = useState(true);
   const [filteredChats, setFilteredChats] = useState<RoomsType | null>(null);
   const [addedRoomId, setAddedRoomId] = useState<ID | null>(null);
+  const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
   const userFromLS: User = getItemFromLS("user");
 
   const {
@@ -264,6 +265,7 @@ function App() {
                         user={user}
                         addedRoomId={addedRoomId}
                         setAddedRoomId={setAddedRoomId}
+                        setSelectedImages={setSelectedImages}
                         areRoomsLoading={areRoomsLoading}
                         setRooms={setRooms}
                         setAreMessagesLoading={setAreMessagesLoading}
@@ -276,6 +278,8 @@ function App() {
                     ) : (
                       <Chat
                         user={user}
+                        selectedImages={selectedImages}
+                        setSelectedImages={setSelectedImages}
                         messages={messages}
                         areMessagesLoading={areMessagesLoading}
                         setMessages={setMessages}
@@ -298,6 +302,7 @@ function App() {
                       >
                         <SideBar
                           user={user}
+                          setSelectedImages={setSelectedImages}
                           setRooms={setRooms}
                           addedRoomId={addedRoomId}
                           setAddedRoomId={setAddedRoomId}
@@ -320,6 +325,8 @@ function App() {
                         areMessagesLoading={areMessagesLoading}
                         setMessages={setMessages}
                         room={room}
+                        selectedImages={selectedImages}
+                        setSelectedImages={setSelectedImages}
                         setRoom={setRoom}
                         setRooms={setRooms}
                         filteredChats={filteredChats}
@@ -341,10 +348,16 @@ function App() {
   );
 }
 
-// Todo:
-// Make my rooms a global state and add more methods for adding a room, deleting, updating, and so on.
-
-// Add the ability to change a photo
-// Add reactions to messages
-
 export default App;
+
+// TODO:
+// ) clear database
+// ) deploy
+
+// FEATURES
+// - add an ability to change a group picture
+// on click -> open a file selector
+// on select adjust an image with a library
+// on adjustment finish > set the updated image eventually
+
+// - add a profile page.
