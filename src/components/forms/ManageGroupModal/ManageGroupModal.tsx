@@ -1,11 +1,22 @@
-import { FC, FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { GroupInfo } from "../../../../types/GroupInfo";
 import { Group } from "../../../../types/Rooms";
+import { useDisclosure } from "@mantine/hooks";
 import { Avatar } from "../../shared/Avatar";
 import { Camera, People, Sliders, Star } from "react-bootstrap-icons";
 import { ModalButton } from "../../shared/ModalButton";
 import { socket } from "../../../adapters/socket";
 import { User } from "../../../../types/Users";
+import { AvatarEditorModal } from "../../shared/AvatarEditorModal";
+import { SelectedImage } from "../../../../types/PublicTypes";
 
 interface Props {
   group: Group;
@@ -48,9 +59,19 @@ const ManageGroupModal: FC<Props> = ({
     name: group.name,
     description: group.description || "",
     isPublic: group.isPublic,
+    avatar: group.avatar,
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedImageForAvatar, setSelectedImageForAvatar] = useState<{
+    name: string;
+    src: string;
+  } | null>(null);
+  const [
+    isAvatarEditorModalOpened,
+    { open: openAvatarEditorModal, close: closeAvatarEditorModal },
+  ] = useDisclosure(false);
+  const [isAvatarImageHovered, setIsAvatarImageHovered] = useState(false);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -88,12 +109,16 @@ const ManageGroupModal: FC<Props> = ({
     if (
       group.description !== groupInfo.description.trim() ||
       group.name !== groupInfo.name.trim() ||
-      group.isPublic !== groupInfo.isPublic
+      group.isPublic !== groupInfo.isPublic ||
+      (typeof groupInfo.avatar !== "string"
+        ? group.avatar !== groupInfo.avatar.src
+        : group.avatar !== groupInfo.avatar)
     ) {
       const originalGroupCred = {
         name: group.name,
         description: group.description,
         isPublic: group.isPublic,
+        avatar: group.avatar,
       };
 
       socket.emit(
@@ -136,17 +161,87 @@ const ManageGroupModal: FC<Props> = ({
       ])
     : itemsAllowedToAnybody;
 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newImage = e.target.files && e.target.files[0];
+
+    if (!newImage) return null;
+
+    const imageUrl = URL.createObjectURL(newImage);
+
+    setSelectedImageForAvatar({
+      name: newImage.name,
+      src: imageUrl,
+    });
+    openAvatarEditorModal();
+  };
+
+  const handleSubmitAvatar = async (newImage: SelectedImage) => {
+    setGroupInfo((prevGroupInfo) => ({
+      ...prevGroupInfo,
+      avatar: newImage,
+    }));
+  };
+
   return (
     <form onSubmit={handleFormSubmit}>
       <div className="flex flex-col gap-5 px-3 pb-4">
         <div className="flex gap-5">
-          <label htmlFor=""></label>
-          <Avatar
-            avatar={group.avatar}
-            icon={<Camera />}
-            avatarSize={60}
-            hover
+          <label htmlFor="selectFileInput">
+            {(typeof groupInfo.avatar === "string" &&
+              groupInfo.avatar.includes("http")) ||
+            typeof groupInfo.avatar !== "string" ? (
+              <div
+                className="relative h-fit w-fit cursor-pointer"
+                onMouseEnter={() => setIsAvatarImageHovered(true)}
+                onMouseLeave={() => setIsAvatarImageHovered(false)}
+              >
+                <Avatar
+                  avatar={
+                    typeof groupInfo.avatar !== "string"
+                      ? groupInfo.avatar.src
+                      : groupInfo.avatar
+                  }
+                  avatarSize={70}
+                  hover
+                />
+                <div
+                  className="absolute bottom-0 flex h-full w-full items-center justify-center rounded-full bg-black"
+                  style={{
+                    opacity: isAvatarImageHovered ? "0.5" : "0",
+                  }}
+                >
+                  <Camera className="h-6 w-6" />
+                </div>
+              </div>
+            ) : (
+              <Avatar
+                avatar={group.avatar}
+                icon={<Camera />}
+                avatarSize={70}
+                hover
+              />
+            )}
+          </label>
+          <input
+            id="selectFileInput"
+            type="file"
+            accept=".png, .jpeg, .jpg"
+            className="hidden"
+            onChange={handleFileChange}
           />
+
+          {selectedImageForAvatar && (
+            <AvatarEditorModal
+              close={() => {
+                closeAvatarEditorModal();
+
+                setSelectedImageForAvatar(null);
+              }}
+              opened={isAvatarEditorModalOpened}
+              handleSubmitAvatar={handleSubmitAvatar}
+              selectedImage={selectedImageForAvatar}
+            />
+          )}
 
           <div className="flex flex-col">
             <label htmlFor="group-name" className="text-blue-400">

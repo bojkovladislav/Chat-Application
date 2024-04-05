@@ -52,24 +52,38 @@ const Avatar: FC<Props> = ({
   };
 
   return (
-    <div
-      className={`relative flex items-center justify-center rounded-full text-center font-semibold ${
-        hover && "cursor-pointer opacity-70 hover:opacity-100"
-      }`}
-      style={{
-        backgroundColor: avatar || "transparent",
-        height: `${size}px`,
-        width: `${size}px`,
-        fontSize: `${size / 2}px`,
-      }}
-    >
-      {icon ? icon : handleGetLogo()}
-      {status && (
-        <div
-          className={`${handleGetStatusColor()} absolute bottom-0 right-0 h-3 w-3 rounded-lg border-2 border-white`}
+    <>
+      {avatar.includes("http") ? (
+        <img
+          src={avatar}
+          alt="Avatar"
+          className="rounded-full"
+          style={{
+            height: `${size}px`,
+            width: `${size}px`,
+          }}
         />
+      ) : (
+        <div
+          className={`relative flex items-center justify-center rounded-full text-center font-semibold ${
+            hover && "cursor-pointer opacity-70 hover:opacity-100"
+          }`}
+          style={{
+            backgroundColor: avatar || "transparent",
+            height: `${size}px`,
+            width: `${size}px`,
+            fontSize: `${size / 2}px`,
+          }}
+        >
+          {icon ? icon : handleGetLogo()}
+          {status && (
+            <div
+              className={`${handleGetStatusColor()} absolute bottom-0 right-0 h-3 w-3 rounded-lg border-2 border-white`}
+            />
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

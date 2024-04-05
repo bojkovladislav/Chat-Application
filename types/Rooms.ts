@@ -4,7 +4,7 @@ export type PrivateRoom = {
   id: ID;
   commonId: ID;
   opponentRoomId: ID;
-  avatar: string;
+  avatar: string
   status: USER_STATUS;
   name: string;
   creators: ID[];

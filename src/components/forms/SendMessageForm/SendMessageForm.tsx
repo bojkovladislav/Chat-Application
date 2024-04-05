@@ -149,7 +149,6 @@ const SendMessageForm: FC<Props> = memo(
               img.id === imageToEdit.id &&
               operatedMessage.message?.images
             ) {
-              console.log("selected image", img);
               return operatedMessage.message?.images[0];
             }
 

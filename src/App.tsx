@@ -172,10 +172,14 @@ function App() {
     socket.on("group_deleted", handleRoomDeleteLocally);
 
     socket.on("group_credentials_updated", (updatedGroupCredentials) => {
-      const { name, isPublic, description } = updatedGroupCredentials;
 
       setRoom(
-        (prevRoom) => prevRoom && { ...prevRoom, name, isPublic, description },
+        (prevRoom) =>
+          prevRoom && {
+            ...prevRoom,
+            ...updatedGroupCredentials,
+            id: prevRoom.id,
+          },
       );
 
       setRooms((prevRooms) => {
@@ -183,9 +187,8 @@ function App() {
           if (room.id === updatedGroupCredentials.id) {
             return {
               ...room,
-              name,
-              isPublic,
-              description,
+              ...updatedGroupCredentials,
+              id: room.id,
             };
           }
 
@@ -355,9 +358,4 @@ export default App;
 // ) deploy
 
 // FEATURES
-// - add an ability to change a group picture
-// on click -> open a file selector
-// on select adjust an image with a library
-// on adjustment finish > set the updated image eventually
-
 // - add a profile page.
