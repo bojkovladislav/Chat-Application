@@ -20,6 +20,7 @@ const AvatarEditorModal: FC<Props> = ({
   selectedImage,
 }) => {
   const [zoomValue, setZoomValue] = useState(1);
+  // eslint-disable-next-line
   const editor: any = useRef(null);
 
   const getImageUrl = async () => {

@@ -170,7 +170,7 @@ const Message: FC<Props> = ({
   };
 
   const handleDoubleClickOnMobile = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    _e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     currentMessageId: ID,
   ) => {
     if (isMyMessage) return;
