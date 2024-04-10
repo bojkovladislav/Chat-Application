@@ -10,13 +10,14 @@ import {
   MutableRefObject,
 } from "react";
 import { CheckLg, EmojiSmile, Image, Send } from "react-bootstrap-icons";
-import EmojiPicker, { Theme } from "emoji-picker-react";
 import { socket } from "../../../adapters/socket";
 import { User } from "../../../../types/Users";
 import { ID, SelectedImage, SetState } from "../../../../types/PublicTypes";
 import { Message, Messages, OperatedMessage } from "../../../../types/Messages";
 import { PrivateRoom, RoomType } from "../../../../types/Rooms";
 import { MessageOperationBar } from "../../core/MessageOperationBar";
+import EmojiPicker, { Theme } from "emoji-picker-react";
+import useEmojiPickerStore from "../../../store/useEmojiPickerStore";
 
 interface Props {
   setSentMessageId: SetState<ID | null>;
@@ -60,6 +61,8 @@ const SendMessageForm: FC<Props> = memo(
     const [isEmojiClicked, setIsEmojiClicked] = useState(false);
     const [message, setMessage] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const { currentEmojiId, openEmojiPicker, closeEmojiPicker } =
+      useEmojiPickerStore();
 
     const getDate = () => {
       const currentDate = new Date(Date.now());
@@ -80,7 +83,7 @@ const SendMessageForm: FC<Props> = memo(
 
       didMessageChange.current = false;
 
-    // eslint-disable-next-line
+      // eslint-disable-next-line
       if (!!selectedImages.length) {
         setSelectedImages([]);
       }
@@ -130,7 +133,8 @@ const SendMessageForm: FC<Props> = memo(
 
       const isPhoto = !!selectedImages.length;
 
-      if (message === "" && !isPhoto && !didMessageChange.current) return;
+      if (message.trim() === "" && !isPhoto && !didMessageChange.current)
+        return;
 
       if (operatedMessage.edited) {
         const foundMessage =
@@ -303,12 +307,21 @@ const SendMessageForm: FC<Props> = memo(
               color="#3b82f6"
               size={20}
               cursor="pointer"
-              onClick={() => setIsEmojiClicked(!isEmojiClicked)}
+              onClick={() => {
+                setIsEmojiClicked(!isEmojiClicked);
+                if (currentEmojiId && currentEmojiId === '1234-1234-1234-1234-1234') {
+                  closeEmojiPicker();
+
+                  return;
+                }
+
+                openEmojiPicker("1234-1234-1234-1234-1234");
+              }}
             />
           </div>
-          {isEmojiClicked && (
+          {currentEmojiId === "1234-1234-1234-1234-1234" && (
             <div
-              className="bottom absolute"
+              className="bottom absolute z-50"
               style={{
                 bottom:
                   !selectedImages.length && !operatedMessage.message

@@ -17,6 +17,7 @@ import { BoxArrowRight } from "react-bootstrap-icons";
 import { useResizable } from "react-resizable-layout";
 import { SplitterForResize } from "./components/shared/SplitterForResize";
 import { ID, SelectedImage } from "../types/PublicTypes.ts";
+import useEmojiPickerStore from "./store/useEmojiPickerStore.ts";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -30,6 +31,7 @@ function App() {
   const [addedRoomId, setAddedRoomId] = useState<ID | null>(null);
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
   const userFromLS: User = getItemFromLS("user");
+  const { currentEmojiId, closeEmojiPicker } = useEmojiPickerStore();
 
   const {
     isDragging: isLeftBarDragging,
@@ -172,7 +174,6 @@ function App() {
     socket.on("group_deleted", handleRoomDeleteLocally);
 
     socket.on("group_credentials_updated", (updatedGroupCredentials) => {
-
       setRoom(
         (prevRoom) =>
           prevRoom && {
@@ -340,6 +341,13 @@ function App() {
                     </>
                   )}
                 </div>
+
+                {currentEmojiId && (
+                  <div
+                    className="fixed left-0 top-0 h-full w-full"
+                    onClick={closeEmojiPicker}
+                  />
+                )}
               </main>
             </>
           ) : (
@@ -354,8 +362,5 @@ function App() {
 export default App;
 
 // TODO:
-// ) clear database
-// ) deploy
-
 // FEATURES
 // - add a profile page.

@@ -31,6 +31,7 @@ import { RepliedMessageBar } from "../RepliedMessageBar";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { User } from "../../../../types/Users";
 import { Reactions } from "../../shared/Reactions";
+import useEmojiPickerStore from "../../../store/useEmojiPickerStore";
 
 interface Props {
   messages: MessageType[];
@@ -38,12 +39,10 @@ interface Props {
   setOperatedMessage: SetState<OperatedMessage>;
   setMessages: SetState<Messages | null>;
   index: number;
-  messageWithClickedEmojiSelector: ID | null;
   openRoomUserModal: () => void;
   setSelectedMember: SetState<PrivateRoom | null>;
   handleSelectedImageClick: (image: SelectedImage) => void;
   userId: ID;
-  setMessageWithClickedEmojiSelector: SetState<ID | null>;
   handleReactionClick: (
     reaction: Reaction,
     currentRoomType: "private-room" | "group",
@@ -73,8 +72,6 @@ interface Props {
 const Message: FC<Props> = ({
   messages,
   index,
-  messageWithClickedEmojiSelector,
-  setMessageWithClickedEmojiSelector,
   user,
   userId,
   hoveredMessageId,
@@ -98,6 +95,8 @@ const Message: FC<Props> = ({
   setSelectedImages,
 }) => {
   const { showContextMenu } = useContextMenu();
+  const { openEmojiPicker, currentEmojiId, closeEmojiPicker } =
+    useEmojiPickerStore();
   const { authorName, authorId, content, date, id, avatar, images, reactions } =
     message;
   const reactionsWithoutDuplicates = reactions?.reduce(
@@ -256,7 +255,7 @@ const Message: FC<Props> = ({
       style={{
         backgroundColor:
           id === highlightedMessageId ? "#157be8a2" : "transparent",
-        width: id === highlightedMessageId ? "100%" : "fit",
+        width: id === highlightedMessageId ? "100%" : "initial",
       }}
       onContextMenu={(e) => !images && !matches && handleShowMenu(e)}
       id={id}
@@ -400,11 +399,13 @@ const Message: FC<Props> = ({
           right: userId !== authorId ? "-5px" : "initial",
         }}
         onClick={() =>
-          setMessageWithClickedEmojiSelector((prevId) => (prevId ? null : id))
+          currentEmojiId && currentEmojiId !== "1234-1234-1234-1234-1234"
+            ? closeEmojiPicker()
+            : openEmojiPicker(id)
         }
       />
 
-      {messageWithClickedEmojiSelector === id && (
+      {currentEmojiId === id && (
         <div
           className="absolute top-[10px] z-50 transition-all duration-300"
           style={{
@@ -420,12 +421,12 @@ const Message: FC<Props> = ({
                 authorId: user.id,
                 reaction: emoji.emoji,
                 id: uuid() as ID,
-                messageId: messageWithClickedEmojiSelector,
+                messageId: currentEmojiId,
               };
 
-              handleSendReaction(newReaction, messageWithClickedEmojiSelector);
+              handleSendReaction(newReaction, currentEmojiId);
               handleMessageHoverEnd();
-              setMessageWithClickedEmojiSelector(null);
+              closeEmojiPicker();
             }}
           />
         </div>

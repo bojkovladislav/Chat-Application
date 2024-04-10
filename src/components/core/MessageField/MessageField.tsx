@@ -20,7 +20,7 @@ interface Props {
   messages: Messages | null;
   sentMessageId: ID | null;
   isMessagesLoading: boolean;
-setMessages: SetState<Messages | null>;
+  setMessages: SetState<Messages | null>;
   room: RoomType;
   setNewMessageFromOpponentId: SetState<null | ID>;
   setSelectedImages: SetState<SelectedImage[]>;
@@ -53,8 +53,6 @@ const MessageField: FC<Props> = ({
     null,
   );
   const [hoveredMessageId, setHoveredMessageId] = useState<ID | null>(null);
-  const [messageWithClickedEmojiSelector, setMessageWithClickedEmojiSelector] =
-    useState<ID | null>(null);
   const clickCountRef = useRef(0);
 
   const handleMessageHoverStart = (currentMessageId: ID) =>
@@ -316,10 +314,6 @@ const MessageField: FC<Props> = ({
             room={room}
             setSelectedImages={setSelectedImages}
             setMessages={setMessages}
-            messageWithClickedEmojiSelector={messageWithClickedEmojiSelector}
-            setMessageWithClickedEmojiSelector={
-              setMessageWithClickedEmojiSelector
-            }
             handleAddNewReaction={handleAddNewReaction}
             user={user}
             hoveredMessageId={hoveredMessageId}
