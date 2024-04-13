@@ -18,6 +18,7 @@
     "clsx": "^2.1.0",
     "emoji-picker-react": "^4.5.16",
     "i": "^0.3.7",
+    "image-conversion": "^2.1.1",
     "lodash": "^4.17.21",
     "mantine-contextmenu": "^7.5.0",
     "npm": "^10.5.0",

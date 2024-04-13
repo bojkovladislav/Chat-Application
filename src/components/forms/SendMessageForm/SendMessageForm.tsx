@@ -186,6 +186,8 @@ const SendMessageForm: FC<Props> = memo(
           },
           selectedImages,
         );
+
+        console.log(selectedImages);
       } else if (message) {
         socket.emit(
           "create_message",
@@ -309,7 +311,10 @@ const SendMessageForm: FC<Props> = memo(
               cursor="pointer"
               onClick={() => {
                 setIsEmojiClicked(!isEmojiClicked);
-                if (currentEmojiId && currentEmojiId === '1234-1234-1234-1234-1234') {
+                if (
+                  currentEmojiId &&
+                  currentEmojiId === "1234-1234-1234-1234-1234"
+                ) {
                   closeEmojiPicker();
 
                   return;

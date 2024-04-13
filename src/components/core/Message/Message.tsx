@@ -360,7 +360,9 @@ const Message: FC<Props> = ({
                       }}
                       key={image.id}
                       alt={image.name}
-                      onClick={() => handleSelectedImageClick(image)}
+                      onClick={() =>
+                        !matches && handleSelectedImageClick(image)
+                      }
                       onContextMenu={(e) => handleShowMenu(e, image)}
                     />
                   ))}
@@ -380,30 +382,32 @@ const Message: FC<Props> = ({
         </div>
       </div>
 
-      <EmojiSmileFill
-        className="absolute top-[-10px] z-10 h-5 w-5 cursor-pointer text-[#3b82f6] transition-all duration-300"
-        style={{
-          opacity:
-            hoveredMessageId === id &&
-            ((room as Group).members ||
-              ((room as PrivateRoom).commonId && authorId !== user.id))
-              ? "1"
-              : "0",
-          pointerEvents:
-            hoveredMessageId === id &&
-            ((room as Group).members ||
-              ((room as PrivateRoom).commonId && authorId !== user.id))
-              ? "all"
-              : "none",
-          left: userId === authorId ? "-5px" : "initial",
-          right: userId !== authorId ? "-5px" : "initial",
-        }}
-        onClick={() =>
-          currentEmojiId && currentEmojiId !== "1234-1234-1234-1234-1234"
-            ? closeEmojiPicker()
-            : openEmojiPicker(id)
-        }
-      />
+      {!matches && (
+        <EmojiSmileFill
+          className="absolute top-[-10px] z-10 h-5 w-5 cursor-pointer text-[#3b82f6] transition-all duration-300"
+          style={{
+            opacity:
+              hoveredMessageId === id &&
+              ((room as Group).members ||
+                ((room as PrivateRoom).commonId && authorId !== user.id))
+                ? "1"
+                : "0",
+            pointerEvents:
+              hoveredMessageId === id &&
+              ((room as Group).members ||
+                ((room as PrivateRoom).commonId && authorId !== user.id))
+                ? "all"
+                : "none",
+            left: userId === authorId ? "-5px" : "initial",
+            right: userId !== authorId ? "-5px" : "initial",
+          }}
+          onClick={() =>
+            currentEmojiId && currentEmojiId !== "1234-1234-1234-1234-1234"
+              ? closeEmojiPicker()
+              : openEmojiPicker(id)
+          }
+        />
+      )}
 
       {currentEmojiId === id && (
         <div

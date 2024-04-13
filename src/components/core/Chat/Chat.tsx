@@ -26,6 +26,7 @@ import useGroupOperations from "../../../hooks/useGroupOperations";
 import { SelectedImage } from "../../shared/SelectedImage";
 import { Modal } from "../../shared/Modal";
 import { InfoCircleFill } from "react-bootstrap-icons";
+import { compressImage } from "../../../utils/compressImage";
 
 interface Props {
   messages: Messages | null;
@@ -108,7 +109,9 @@ const Chat: FC<Props> = ({
   const [openedInFullScreenImage, setOpenedInFullScreenImage] =
     useState<SelectedImageType | null>(null);
   const didMessageChange = useRef(false);
-  const [imageToEdit, setImageToEdit] = useState<SelectedImageType | null>(null);
+  const [imageToEdit, setImageToEdit] = useState<SelectedImageType | null>(
+    null,
+  );
   const matches = useMediaQuery("(max-width: 765px)");
 
   const scrollChatToBottom = (smooth: boolean = false) => {
@@ -213,11 +216,15 @@ const Chat: FC<Props> = ({
 
     const imageUrl = URL.createObjectURL(newImage);
 
+    const blobbedImage = new Blob([newImage]);
+
+    const imageData = await compressImage(blobbedImage);
+
     const updatedImage: SelectedImageType = {
       src: imageUrl,
       id: uuid(),
       name: newImage.name,
-      data: await newImage.arrayBuffer(),
+      data: imageData,
     };
 
     return { currentImageId, updatedImage };

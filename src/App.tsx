@@ -351,7 +351,14 @@ function App() {
               </main>
             </>
           ) : (
-            <h1>The Chat Is Loading...</h1>
+            <div className="flex flex-col gap-5">
+              <h1>The Chat Is Loading...</h1>
+              <p className="max-w-sm text-sm">
+                <span className="text-yellow-300">Note:</span> Initial loading
+                time may be slightly longer than usual due to the limitations of
+                my server, which is hosted for free.
+              </p>
+            </div>
           )}
         </>
       )}
@@ -362,5 +369,8 @@ function App() {
 export default App;
 
 // TODO:
+// images
+
+
 // FEATURES
 // - add a profile page.

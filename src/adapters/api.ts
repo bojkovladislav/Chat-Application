@@ -5,6 +5,7 @@ import { getItemFromLS } from "../utils/localStorage";
 
 const BASE_URL = "https://chat-application-server-dcth.onrender.com";
 // const BASE_URL = "http://localhost:5000";
+// const BASE_URL = "http://192.168.1.56:5000";
 
 const currentUser = getItemFromLS("user");
 
