@@ -10,14 +10,15 @@ import SideBar from "./components/core/SideBar/SideBar.tsx";
 import { Group, PrivateRoom, RoomType, RoomsType } from "../types/Rooms.ts";
 import { User } from "../types/Users.ts";
 import { socket } from "./adapters/socket.ts";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import { Messages } from "../types/Messages.ts";
-import { BoxArrowRight } from "react-bootstrap-icons";
-
 import { useResizable } from "react-resizable-layout";
 import { SplitterForResize } from "./components/shared/SplitterForResize";
 import { ID, SelectedImage } from "../types/PublicTypes.ts";
 import useEmojiPickerStore from "./store/useEmojiPickerStore.ts";
+import AppHeader from "./components/core/AppHeader/AppHeader.tsx";
+import Modal from "./components/shared/Modal/Modal.tsx";
+import UserProfile from "./components/core/UserProfile/UserProfile.tsx";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +33,10 @@ function App() {
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
   const userFromLS: User = getItemFromLS("user");
   const { currentEmojiId, closeEmojiPicker } = useEmojiPickerStore();
+  const [
+    isUserProfileOpened,
+    { open: openUserProfile, close: closeUserProfile },
+  ] = useDisclosure(false);
 
   const {
     isDragging: isLeftBarDragging,
@@ -246,17 +251,11 @@ function App() {
         <>
           {user ? (
             <>
-              <header
-                className={`flex items-center justify-between border-b-2 border-slate-600 bg-slate-800 p-5 md:px-52 md:py-5 ${
-                  matches && room ? "hidden" : "block"
-                }`}
-              >
-                <h1 className="text-xl font-bold">Chat App</h1>
-                <BoxArrowRight
-                  onClick={handleLogOut}
-                  className="cursor-pointer text-xl"
-                />
-              </header>
+              <AppHeader
+                room={room}
+                user={user}
+                openUserProfileModal={openUserProfile}
+              />
               <main
                 className={`flex h-full flex-col ${
                   user && "md:min-h-[500px] md:px-52"
@@ -342,6 +341,19 @@ function App() {
                   )}
                 </div>
 
+                <Modal
+                  close={closeUserProfile}
+                  opened={isUserProfileOpened}
+                  title={`${user.name}'s profile`}
+                >
+                  <UserProfile
+                    user={user}
+                    handleLogOut={handleLogOut}
+                    closeUserProfileModal={closeUserProfile}
+                    setUser={setUser}
+                  />
+                </Modal>
+
                 {currentEmojiId && (
                   <div
                     className="fixed left-0 top-0 h-full w-full"
@@ -367,10 +379,8 @@ function App() {
 }
 
 export default App;
-
-// TODO:
-// images
-
+// TODO
+// fix mobile issues
 
 // FEATURES
 // - add a profile page.

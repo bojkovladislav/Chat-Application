@@ -1,22 +1,18 @@
-import {
-  ChangeEvent,
-  FC,
-  FormEvent,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, FC, FormEvent, useEffect, useRef, useState } from "react";
 import { GroupInfo } from "../../../../types/GroupInfo";
 import { Group } from "../../../../types/Rooms";
 import { useDisclosure } from "@mantine/hooks";
-import { Avatar } from "../../shared/Avatar";
-import { Camera, People, Sliders, Star } from "react-bootstrap-icons";
+import { People, Sliders, Star } from "react-bootstrap-icons";
 import { ModalButton } from "../../shared/ModalButton";
 import { socket } from "../../../adapters/socket";
 import { User } from "../../../../types/Users";
 import { AvatarEditorModal } from "../../shared/AvatarEditorModal";
 import { SelectedImage } from "../../../../types/PublicTypes";
+import { AvatarToUpdate } from "../../shared/AvatarToUpdate";
+import useImageSelection from "../../../hooks/useImageSelection";
+import { SettingsItems } from "../../core/SettingsItems";
+import useTextAreaAdjustment from "../../../hooks/useTextAreaAdjustment";
+import { DescriptionInput } from "../../shared/DescriptionInput";
 
 interface Props {
   group: Group;
@@ -25,28 +21,6 @@ interface Props {
   openAdminModal: () => void;
   user: User;
 }
-
-interface ItemProps {
-  icon: ReactNode;
-  title: string;
-  value: string;
-  clickEvent: () => void;
-}
-
-const Item: FC<ItemProps> = ({ icon, title, value, clickEvent }) => {
-  return (
-    <div
-      className="flex cursor-pointer items-center justify-between p-2 transition-colors duration-300 hover:bg-slate-800"
-      onClick={clickEvent}
-    >
-      <div className="flex items-center gap-4">
-        <div>{icon}</div>
-        <h3>{title}</h3>
-      </div>
-      <p className="text-sm text-blue-400">{value}</p>
-    </div>
-  );
-};
 
 const ManageGroupModal: FC<Props> = ({
   group,
@@ -62,30 +36,18 @@ const ManageGroupModal: FC<Props> = ({
     avatar: group.avatar,
   });
   const inputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [selectedImageForAvatar, setSelectedImageForAvatar] = useState<{
-    name: string;
-    src: string;
-  } | null>(null);
+  const [selectedImageForAvatar, setSelectedImageForAvatar, selectFile] =
+    useImageSelection();
   const [
     isAvatarEditorModalOpened,
     { open: openAvatarEditorModal, close: closeAvatarEditorModal },
   ] = useDisclosure(false);
-  const [isAvatarImageHovered, setIsAvatarImageHovered] = useState(false);
+  const [description, handleTextareaChange, textareaRef] =
+    useTextAreaAdjustment(group.description);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-
-  const updateTextareaHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "20px";
-      textareaRef.current.style.height = `${Math.min(
-        textareaRef.current.scrollHeight,
-        200,
-      )}px`;
-    }
-  };
 
   const handleTitleChange = (currentValue: string) => {
     setGroupInfo((prevGroupInfo) => ({
@@ -94,17 +56,21 @@ const ManageGroupModal: FC<Props> = ({
     }));
   };
 
-  const handleTextareaChange = (value: string) => {
-    updateTextareaHeight();
-    setGroupInfo((prevGroupInfo) => ({
-      ...prevGroupInfo,
-      description: value,
-    }));
-  };
-
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
     closeManageGroupModal();
+
+    console.log(
+      group.id,
+      group.members,
+      {
+        name: group.name,
+        description: group.description,
+        isPublic: group.isPublic,
+        avatar: group.avatar,
+      },
+      groupInfo,
+    );
 
     if (
       group.description !== groupInfo.description.trim() ||
@@ -146,7 +112,7 @@ const ManageGroupModal: FC<Props> = ({
     },
   ];
 
-  const items: ItemProps[] = group.creators.includes(user.id)
+  const items = group.creators.includes(user.id)
     ? itemsAllowedToAnybody.concat([
         {
           title: "Group Info",
@@ -162,16 +128,7 @@ const ManageGroupModal: FC<Props> = ({
     : itemsAllowedToAnybody;
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newImage = e.target.files && e.target.files[0];
-
-    if (!newImage) return null;
-
-    const imageUrl = URL.createObjectURL(newImage);
-
-    setSelectedImageForAvatar({
-      name: newImage.name,
-      src: imageUrl,
-    });
+    selectFile(e);
     openAvatarEditorModal();
   };
 
@@ -182,52 +139,18 @@ const ManageGroupModal: FC<Props> = ({
     }));
   };
 
+  useEffect(() => {
+    setGroupInfo((prevGroupInfo) => ({ ...prevGroupInfo, description }));
+  }, [description]);
+
   return (
     <form onSubmit={handleFormSubmit}>
       <div className="flex flex-col gap-5 px-3 pb-4">
         <div className="flex gap-5">
-          <label htmlFor="selectFileInput">
-            {(typeof groupInfo.avatar === "string" &&
-              groupInfo.avatar.includes("http")) ||
-            typeof groupInfo.avatar !== "string" ? (
-              <div
-                className="relative h-fit w-fit cursor-pointer"
-                onMouseEnter={() => setIsAvatarImageHovered(true)}
-                onMouseLeave={() => setIsAvatarImageHovered(false)}
-              >
-                <Avatar
-                  avatar={
-                    typeof groupInfo.avatar !== "string"
-                      ? groupInfo.avatar.src
-                      : groupInfo.avatar
-                  }
-                  avatarSize={70}
-                  hover
-                />
-                <div
-                  className="absolute bottom-0 flex h-full w-full items-center justify-center rounded-full bg-black"
-                  style={{
-                    opacity: isAvatarImageHovered ? "0.5" : "0",
-                  }}
-                >
-                  <Camera className="h-6 w-6" />
-                </div>
-              </div>
-            ) : (
-              <Avatar
-                avatar={group.avatar}
-                icon={<Camera />}
-                avatarSize={70}
-                hover
-              />
-            )}
-          </label>
-          <input
-            id="selectFileInput"
-            type="file"
-            accept=".png, .jpeg, .jpg"
-            className="hidden"
-            onChange={handleFileChange}
+          <AvatarToUpdate
+            initialAvatar={group.avatar}
+            selectedAvatar={groupInfo.avatar}
+            handleFileChange={handleFileChange}
           />
 
           {selectedImageForAvatar && (
@@ -257,31 +180,18 @@ const ManageGroupModal: FC<Props> = ({
             />
           </div>
         </div>
-        <textarea
-          rows={1}
-          ref={textareaRef}
-          maxLength={200}
-          className="resize-none bg-transparent text-sm outline-none"
-          value={groupInfo.description}
+        <DescriptionInput
+          handleTextareaChange={handleTextareaChange}
           placeholder="Description (optional)"
-          onChange={(e) => handleTextareaChange(e.target.value)}
+          textareaRef={textareaRef}
+          value={groupInfo.description}
         />
       </div>
 
       <div className="h-2 bg-slate-700" />
 
       <div className="flex flex-col gap-12 pt-2">
-        <div>
-          {items.map(({ title, clickEvent, icon, value }) => (
-            <Item
-              title={title}
-              clickEvent={clickEvent}
-              icon={icon}
-              value={value}
-              key={title}
-            />
-          ))}
-        </div>
+        <SettingsItems items={items} />
         <div className="self-end px-3">
           <ModalButton title="Save" />
         </div>
