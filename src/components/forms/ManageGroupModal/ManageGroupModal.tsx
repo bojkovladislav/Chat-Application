@@ -191,7 +191,7 @@ const ManageGroupModal: FC<Props> = ({
       <div className="h-2 bg-slate-700" />
 
       <div className="flex flex-col gap-12 pt-2">
-        <SettingsItems items={items} />
+        <SettingsItems items={items} user={user} />
         <div className="self-end px-3">
           <ModalButton title="Save" />
         </div>

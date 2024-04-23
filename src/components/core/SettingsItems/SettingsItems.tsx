@@ -8,7 +8,7 @@ import { socket } from "../../../adapters/socket";
 interface Props {
   items: SettingsItem[];
   user: User;
-  setUser: SetState<User | null>;
+  setUser?: SetState<User | null>;
 }
 
 const Item: FC<SettingsItem> = ({ icon, title, value, clickEvent }) => {
@@ -30,7 +30,7 @@ const SettingsItems: FC<Props> = ({ items, user, setUser }) => {
   return (
     <div>
       {items.map(({ title, clickEvent, icon, value }) =>
-        title === "Status" ? (
+        title === "Status" && setUser ? (
           <StatusMenu position="right" withArrow key={title}>
             <StatusMenu.Target>
               <div>
